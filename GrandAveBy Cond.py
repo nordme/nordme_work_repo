@@ -57,6 +57,8 @@ if do_split:
                   'vis/thumbs/learn/correct',
                   'vis/thumbs/learn/incorrect']
 
+blah blah blah blah blah change practice
+
     for i, cond in enumerate(conditions):
         split_evokeds = []
         for subj in subjs:
