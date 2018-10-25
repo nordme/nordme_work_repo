@@ -65,7 +65,6 @@ if do_split:
             evoked = mne.read_evokeds(split_file, condition=cond, baseline=(None, 0))
             assert evoked.comment == cond
             split_evokeds.append(evoked)
-        grndavr = mne.grand_average(split_evokeds)
-        mne.Evoked.save(grndavr, op.join('/home/nordme/GitHub/', '15a_%s-N%d-%d-ave.fif'
+                mne.Evoked.save(grndavr, op.join('/home/nordme/GitHub/', '15a_%s-N%d-%d-ave.fif'
                                          % (analysis, len(subjs), i)))
         print('Created file %s' % op.join('/home/nordme/GitHub/', '15a_%s-N%d-%d-ave.fif' % (analysis, len(subjs), i)))
