@@ -15,13 +15,38 @@ sub_dir = []
 all_files = []
 rs_list = []
 erm_list = []
+bads = ['genz102_9a',
+        'genz107_9a',
+        'genz127_9a',
+        'genz204_11a',
+        'genz215_11a',
+        'genz217_11a',
+        'genz301_13a',
+        'genz303_13a',
+        'genz304_13a',
+        'genz306_13a',
+        'genz315_13a',
+        'genz317_13a',
+        'genz405_15a',
+        'genz407_15a',
+        'genz409_15a']
 
 # Search all the genz subject directories on brainstudio for erms and resting states.
 # Eliminate pilot subjects.
 # Make lists attaching the subject names to the appropriate sub-directories and files.
 
+
+
 subjs = [d for d in os.listdir(raw_dir) if 'genz' in d]
 subjs.sort()
+
+
+for bad in bads:
+    try:
+        subjs.remove(bad)
+        print('Removing bad subject %s' % bad)
+    except ValueError:
+        pass
 
 rs_subjs = []
 
@@ -32,14 +57,14 @@ for subject in subjs:
         print('Pilot ignored: %s' %subject)
     elif fn.fnmatch(subject, 'genz_proc'):
         print('Ignored: %s' %subject)
-    elif fn.fnmatch(subject, 'genz_'):
+    elif fn.fnmatch(subject, 'genz_*'):
         print('Ignored: %s' %subject)
     elif fn.fnmatch(subject, 'genzbuttonbox_test'):
         print('Ignored: %s' % subject)
     else:
         rs_subjs.append(subject)
 
-# print(rs_subjs)
+print(rs_subjs)
 
 for subject in rs_subjs:
     sub =[s for s in os.listdir(raw_dir + subject) if op.isdir(op.join(raw_dir + subject + '/%s' %s))]
@@ -57,9 +82,6 @@ for subject in rs_subjs:
             else:
                 pass
 
-# print(rs_list)
-# print(erm_list)
-# print(all_files)
 
 # See if resting state and erm files exist in the target directory; if non-existent, add
 
@@ -87,7 +109,7 @@ for s, d, f in rs_list:
         except OSError:
             print('Hmm. Check out the folder for subject %s' % s)
 
-    rs_source = op.join(raw_dir + s + '/%s/' %d + f)
+    rs_source = op.join(raw_dir + s + '/%s/' % d + f)
     # print(rs_source)
     rs_dest = op.join(target_dir + s + '/raw_fif/' + f)
     # print(rs_dest)

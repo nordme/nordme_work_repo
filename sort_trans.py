@@ -21,6 +21,7 @@ for dir in os.listdir(active_dir):
     elif 'genz' in dir:
         try:
             os.mkdir(op.join(active_dir + dir + '/trans/'))
+            print('Made a trans directory at %s' % op.join(active_dir + dir + '/trans/'))
         except PermissionError:
             print('Need permission for subject %s.' % dir)
 
@@ -34,6 +35,7 @@ for subject in subjects:
     elif op.isdir('/brainstudio/MEG/genz/genz_proc/active/%s' % subject):
         try:
             shutil.copy(op.join(parent_dir + subject + '-trans.fif'), target_dir)
+            print('Put trans file in for subject %s.' % subject)
         except PermissionError:
             print('Need permission for subject %s.' % subject)
         except IsADirectoryError:
@@ -43,30 +45,6 @@ for subject in subjects:
 
 
 
-# put trans files into resting state subject folders that don't already have one
-
-resting_dir = '/brainstudio/MEG/genz/genz_proc/resting/'
-
-for dir in os.listdir(resting_dir):
-    if op.isdir(op.join(resting_dir + dir + '/trans/')):
-        print('Subject %s already has a resting trans folder.' % dir)
-    elif 'genz' in dir:
-        try:
-            os.mkdir(op.join(resting_dir + dir + '/trans/'))
-        except PermissionError:
-            print('Need permission for subject %s.' % dir)
-
-
-# sort trans files into trans folders for resting state subjects that don't already have a trans file
-
-for subject in subjects:
-    rest_dir = op.join('/brainstudio/MEG/genz/genz_proc/resting/' + subject + '/trans/')
-    if op.isfile(op.join(rest_dir + subject + '-trans.fif')):
-        print('Subject %s already has a resting trans file.' % subject)
-    elif op.isdir('/brainstudio/MEG/genz/genz_proc/resting/%s' % subject):
-        shutil.copy(op.join(parent_dir + subject + '-trans.fif'), rest_dir)
-    else:
-        print('Hmm. Check the resting state folder for %s.' % subject)
 
 
 
