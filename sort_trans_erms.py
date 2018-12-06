@@ -161,6 +161,14 @@ trans_files.sort()
 
 trans_subjects = [op.join((file.strip('-trans.fif')) + 'a') for file in trans_files if 'genz' in file]
 
+for bad in bads:
+    try:
+        trans_subjects.remove(bad)
+        print('Removing bad subject for trans files %s' % bad)
+    except ValueError:
+        pass
+
+# print(trans_subjects)
 
 # put trans files into resting state subject folders that don't already have one
 

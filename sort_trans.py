@@ -11,7 +11,7 @@ files.sort()
 
 subjects = [op.join((file.strip('-trans.fif')) + 'a') for file in files if 'genz' in file]
 
-# put trans files into active subject folders unless there's already a trans file there
+# put trans folders into active subject folders unless there's already a trans folder there
 
 active_dir = '/brainstudio/MEG/genz/genz_proc/active/'
 
