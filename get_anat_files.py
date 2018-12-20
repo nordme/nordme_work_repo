@@ -18,10 +18,8 @@ import shutil
 mri_dir ='/brainstudio/MRI/data/genz/'
 parent_dir = '/brainstudio/MEG/genz/anatomy/fix/'
 
-subjects = ['sub-genz527',
-            'sub-genz528',
-            'sub-genz529',
-            'sub-genz531']
+subjects = ['sub-genz530',
+            'sub-genz532']
 
 print('Pulling files to %s for specified subjects.' % parent_dir)
 
