@@ -12,24 +12,27 @@ import mnefun
 import numpy as np
 # from picks import names, bad_channels
 
-params = mnefun.Params(n_jobs=18, tmin=-1., tmax=1.,
+params = mnefun.Params(n_jobs=6, tmin=-1., tmax=1.,
                        decim=5, proj_sfreq=200,
                        n_jobs_fir=4, n_jobs_resample=4,
                        filter_length='auto', lp_cut=80.,
                        lp_trans='auto', bem_type='5120')
 
 
-params.subjects = ['genz125_9a',
-                   'genz128_9a',
-                   'genz529_17a',
+params.subjects = ['genz126_9a',
+                   'genz125_9ab',
+                   'genz128_9ab',
+                   'genz529_17ab',
                    'genz530_17a',
-                   'genz530_17ab']
+                   'genz530_17ab',
+                   'genz530_17ac']
 
 params.work_dir = '/brainstudio/MEG/genz/genz_proc/resting'
-params.subject_indices = [4]
+params.subject_indices = [0]
+params.subjects_dir = '/brainstudio/MEG/genz/anatomy'
 # write prebads
 
-
+params.force_erm_cov_rank_full = False
 params.dates = [None] * len(params.subjects)
 params.structurals = params.subjects
 params.subject_run_indices = None
@@ -73,18 +76,19 @@ params.report_params.update(
     source_alignment=True
 
 )
+
 mnefun.do_processing(
     params,
     fetch_raw=False,
     do_score=False,
     push_raw=False,
-    do_sss=True,
+    do_sss=False,
     fetch_sss=False,
     do_ch_fix=False,
-    gen_ssp=True,
-    apply_ssp=True,
+    gen_ssp=False,
+    apply_ssp=False,
     write_epochs=False,
-    gen_covs=True,
+    gen_covs=False,
     gen_fwd=False,
     gen_inv=False,
     gen_report=True,

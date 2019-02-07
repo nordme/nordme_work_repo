@@ -13,7 +13,7 @@ from score import (vis_names, vis_numbers)
 params = mnefun.Params(tmin=-0.2, tmax=0.8, t_adjust=0, decim=4, lp_cut=80,
                        bmin=-0.2, bmax=0.0)
 params.work_dir = '/brainstudio/MEG/genz/genz_proc/active'
-params.subjects = ['genz332_13a']
+params.subjects = ['genz324_13a', 'genz428_15a']
 params.subject_indices = np.arange(len(params.subjects))
 # params.subject_indices = np.setdiff1d(np.arange(len(params.subjects)), [4,6,7])
 params.run_names = [

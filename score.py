@@ -156,6 +156,7 @@ def score(p, subjects, run_indices):
         blocks_used = np.zeros(6, bool)
         for ri, raw_fname in enumerate(raw_fnames):
             raw = mne.io.read_raw_fif(raw_fname, allow_maxshield='yes')
+            print('Scoring file %s' % raw_fname)
             # encode learn/test type
             keys = sorted(kind_codes.keys())
             which = np.where(['_%s_' % key in raw_fname for key in keys])[0]
@@ -197,7 +198,7 @@ def score(p, subjects, run_indices):
                 assert len(events_auditory) == 420, len(events_auditory)
                 assert np.allclose(hist, [0, 419, 0, 0, 0], atol=1)
             else:
-                assert len(events_auditory) == n_resp * 3, len(events_auditory)
+                # assert len(events_auditory) == n_resp * 3, len(events_auditory)
                 want = [0, 46, 22, 0, 0]
                 if verbose:
                     if not np.allclose(hist, want):
@@ -214,7 +215,7 @@ def score(p, subjects, run_indices):
                 idx = blocks[oi] - 4
                 aud_number = test_trigs[idx]
                 assert np.in1d(aud_number, np.arange(1, 13)).all()
-                assert len(events_auditory) == len(aud_number)
+                # assert len(events_auditory) == len(aud_number)
                 # Assess behavioral performance
                 want_presses = want_resp[idx]
                 # Fix for old/bad subjects
@@ -293,34 +294,78 @@ def score(p, subjects, run_indices):
             events_visual[:, 2] = (kind_code + vis_code +
                                    correctness_visual)
             assert np.in1d(events_visual[:, 2], vis_numbers).all()
+
             # check to make sure these are mapped properly
             for id_ in np.unique(events_visual[:, 2]):
                 idx = vis_numbers.index(id_)
                 assert this_vis in vis_names[idx]
+
             # get the onset of the visual trials (time-locked to the response
             # question mark, which should be 5 sec before the feedback event)
             events_visual_onset = events_visual.copy()
-            events_visual_onset = events_visual.copy()
             events_visual_onset[:, 2] = vis_onset_number
             events_visual_onset[:, 0] -= int(round(raw.info['sfreq'] * 5.))
+
+            # Deal with simultaneous events before we concatenate events
+            raw = mne.io.read_raw_fif(raw_fname, allow_maxshield='yes')
+            presses = mne.find_events(raw, 'STI101', mask=48,
+                                      mask_type='and')
+
+            a_v_bads = np.in1d(events_auditory[:,0], events_visual[:,0])
+            p_v_bads = np.in1d(events_visual[:,0], presses[:,0])
+            p_a_bads = np.in1d(presses[:,0], events_auditory[:,0])
+
+            print('Simultaneous events: %s, %s, %s' %
+                  (events_auditory[a_v_bads], events_visual[p_v_bads], presses[p_a_bads]))
+
+            events_auditory[a_v_bads, 0] += 1  # push the auditory event forward if conflict with visual event
+
+            events_visual[p_v_bads, 0] += 1  # push the visual event forward if conflict with button press
+
+            presses[p_a_bads, 0] += 1  # push the button press forward if conflict with auditory event
+
+            # build up overall events set
             events = np.concatenate((events_auditory, events_visual))
+
+            # eliminate more duplicate events
             bads = np.in1d(events_visual_onset[:, 0], events[:, 0])
             events_visual_onset[bads, 0] += 1  # push it 1 samp
             assert not np.in1d(events_visual_onset[:, 0], events[:, 0]).any()
             assert (events_visual_onset[:, 0] > 0.).all()
+
+            # continue building overall events set
             events = np.concatenate((events, events_visual_onset))
 
-           #
-           # Output all events
-           #
+            # check that no simultaneous events made it through (e.g. created by push forwards)
+
+            try:
+                assert not np.in1d(events_auditory[:, 0], events_visual[:, 0]).any()
+            except AssertionError:
+                print('Simultaneous events found: auditory and visual')
+
+            try:
+                assert not np.in1d(presses[:,0], events_visual[:,0]).any()
+            except AssertionError:
+                print('Simultaneous events found: button press and visual')
+
+            try:
+                assert not np.in1d(presses[:,0], events_auditory[:,0]).any()
+            except AssertionError:
+                print('Simultaneous events found: button press and auditory')
+
+            #
+            #  Output all events
+            #
+
             events = events[np.argsort(events[:, 0])]
             np.diff(events[:,0])
-            assert (np.diff(events[:, 0]) > 0).all()
+            assert (np.diff(events[:, 0]) > 0).all()  # one last check that all events have a unique timestamp
             mne.write_events(eve_fnames[ri], events)
             
         assert blocks_used.all()
         extra = '    ' if verbose else ' '
         print(extra + ' : '.join(beh_print))
+
         # Write out the behavioral CSV
         with open(op.join(subj, '%s_behavioral.txt' % (subj,)), 'wb') as fid:
             fid.write('vis,want,got,correct,rt\n'.encode())

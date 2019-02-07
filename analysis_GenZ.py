@@ -11,9 +11,9 @@ from score import (score, aud_in_names, aud_in_numbers,
                    pick_aud_cov_events, pick_vis_cov_events)
 
 
-params = mnefun.Params(tmin=-0.1, tmax=0.75, t_adjust=0, n_jobs=12,
+params = mnefun.Params(tmin=-0.1, tmax=0.75, t_adjust=0, n_jobs=4,
                        decim=4, n_jobs_mkl=1, proj_sfreq=200,
-                       n_jobs_fir='cuda', n_jobs_resample='cuda',
+                       n_jobs_fir=4, n_jobs_resample=4,
                        filter_length='auto', lp_cut=80., bmin=-0.1,
                        lp_trans='auto', bem_type='inner_skull')
 
@@ -21,7 +21,8 @@ params = mnefun.Params(tmin=-0.1, tmax=0.75, t_adjust=0, n_jobs=12,
 # genz_506_17a is missing some events (48 on one run that should be 420)
 
 #131 no pca
-params.subjects = ['genz231_11a']
+params.subjects = ['genz113_9a'
+                   ]
 params.work_dir = '/brainstudio/MEG/genz/genz_proc/active'
 
 #params.subject_indices = []  # np.arange(len(params.subjects))
@@ -29,7 +30,7 @@ params.subject_indices = np.setdiff1d(np.arange(len(params.subjects)), [])
 params.dates = [(2014, 10, 14)] * len(params.subjects)
 params.structurals = params.subjects
 params.subject_run_indices = None
-params.subjects_dir = op.join('brainstudio', 'MEG', 'genz', 'anatomy')
+params.subjects_dir = op.join('/brainstudio', 'MEG', 'genz', 'anatomy')
 params.score = score
 params.run_names = [
     '%s_emojis_learn_01',
@@ -141,17 +142,17 @@ default = True
 mnefun.do_processing(
     params,
     fetch_raw=False,  # Fetch raw recording files from acq machine
-    do_score=True,  # do scoring
-    push_raw=True,  # Push raw files and SSS script to SSS workstation
-    do_sss=True, # Run SSS remotely
-    fetch_sss=True,  # Fetch SSSed files
+    do_score=False,  # do scoring
+    push_raw=False,  # Push raw files and SSS script to SSS workstation
+    do_sss=False, # Run SSS remotely
+    fetch_sss=False,  # Fetch SSSed files
     do_ch_fix=False,  # Fix channel ordering
-    gen_ssp=True,  # Generate SSP vectors
-    apply_ssp=True,  # Apply SSP vectors and filtering
-    write_epochs=True,  # Write epochs to disk
+    gen_ssp=False,  # Generate SSP vectors
+    apply_ssp=False,  # Apply SSP vectors and filtering
+    write_epochs=False,  # Write epochs to disk
     gen_covs=False,  # Generate covariances
-    gen_fwd=False,  # Generate forward solutions (and source space if needed)
-    gen_inv=False,  # Generate inverses
+    gen_fwd=True,  # Generate forward solutions (and source space if needed)
+    gen_inv=True,  # Generate inverses
     gen_report=False,
-    print_status=False,
+    print_status=True,
 )

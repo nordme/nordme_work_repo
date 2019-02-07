@@ -38,8 +38,7 @@ def find_files(pattern, path):
    return result
 
 
-subjects = ['530_17a',
-            '532_17a']
+subjects = ['113_9a']
 
 for subject in subjects:
     t0 = time.time()

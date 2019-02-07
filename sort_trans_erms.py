@@ -15,7 +15,8 @@ sub_dir = []
 all_files = []
 rs_list = []
 erm_list = []
-bads = ['genz102_9a',
+bads = ['genz101_9a'
+        'genz102_9a',
         'genz107_9a',
         'genz127_9a',
         'genz204_11a',
