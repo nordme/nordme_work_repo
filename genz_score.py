@@ -184,6 +184,11 @@ def score(p, subjects, run_indices):
             assert len(events_auditory) > 40
             if raw_fname == '/storage/Maggie/genZ/genz414_15a/raw_fif/genz414_15a_faces_learn_01_raw.fif':
                 events_auditory = events_auditory[:-1]  # errant extra event
+            if subj == 'genz209_11a':
+                if 'emojis_test' in raw_fname:
+                    events_auditory = events_auditory[8:]  # remove weird audio blips from beginning of recording
+                else:
+                    events_auditory = events_auditory
             # debounce
 #            keep = np.concatenate([
 #                  [True],
@@ -231,7 +236,10 @@ def score(p, subjects, run_indices):
                 presses = mne.find_events(raw, 'STI101', mask=48,
                                           mask_type='and')
                 presses[:, 2] >>= 4
-                assert np.in1d(presses[:, 2], [1, 2]).all()
+                if subj == 'genz332_13a':   # this subject had to use the yellow and green buttons
+                    assert np.in1d(presses[:, 2], [1,2,3].all())
+                else:
+                    assert np.in1d(presses[:, 2], [1, 2]).all()
                 press_slots = np.searchsorted(
                     events_auditory[:, 0], presses[:, 0], 'right')
                 got_presses = list()
@@ -327,7 +335,7 @@ def score(p, subjects, run_indices):
             # build up overall events set
             events = np.concatenate((events_auditory, events_visual))
 
-            # eliminate more duplicate events
+            # eliminate more duplicate events from creating visual onset
             bads = np.in1d(events_visual_onset[:, 0], events[:, 0])
             events_visual_onset[bads, 0] += 1  # push it 1 samp
             assert not np.in1d(events_visual_onset[:, 0], events[:, 0]).any()

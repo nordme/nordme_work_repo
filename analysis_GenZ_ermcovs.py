@@ -7,7 +7,7 @@ GenZ pilot analysis script.
 import os.path as op
 import mnefun
 import numpy as np
-from score import (score, aud_in_names, aud_in_numbers,
+from genz_score import (score, aud_in_names, aud_in_numbers,
                    pick_aud_cov_events, pick_vis_cov_events)
 
 
@@ -17,15 +17,14 @@ params = mnefun.Params(tmin=-0.1, tmax=0.75, t_adjust=0, n_jobs=4,
                        filter_length='auto', lp_cut=80., bmin=-0.1,
                        lp_trans='auto', bem_type='inner_skull')
 
-# genz_301_13a is incomplete: [0, 1, 4], emojis learn, faces learn, emojis test
-# genz_506_17a is missing some events (48 on one run that should be 420)
 
-#131 no pca
-params.subjects = ['genz113_9a'
+params.subjects = ['genz232_11a'
                    ]
-params.work_dir = '/brainstudio/MEG/genz/genz_proc/active'
+params.work_dir = '/home/nordme/data/genz/genz_active/'
 
-#params.subject_indices = []  # np.arange(len(params.subjects))
+# params.work_dir = '/brainstudio/MEG/genz/genz_proc/active/'
+
+# params.subject_indices = [0]
 params.subject_indices = np.setdiff1d(np.arange(len(params.subjects)), [])
 params.dates = [(2014, 10, 14)] * len(params.subjects)
 params.structurals = params.subjects
@@ -68,6 +67,7 @@ params.on_missing = 'ignore'  # some subjects will not complete the paradigm
 params.in_names = aud_in_names
 params.in_numbers = aud_in_numbers
 params.cov_method = 'empirical'
+params.runs_empty = ['%s_erm_01'] # add in the empty room covariance
 params.bem_type = '5120'
 # The ones we actually want
 params.analyses = [
@@ -119,16 +119,16 @@ params.report_params.update(  # add a couple of nice diagnostic plots
     whitening=[
         dict(analysis='All', name='aud',
              cov='%s-80-sss-cov.fif'),
-        dict(analysis='Split', name='aud_emojis_learn_s1',
+        dict(analysis='Split', name='aud/emojis/learn/s01',
              cov='%s-80-sss-cov.fif'),
     ],
     sensor=[
         dict(analysis='All', name='aud', times=aud_times),
-        dict(analysis='Split', name='aud_emojis_learn_s1', times=aud_times),
+        dict(analysis='Split', name='aud/emojis/learn/s01', times=aud_times),
     ],
     sensor_topo=[
         dict(analysis='All', name='aud'),
-        dict(analysis='Split', name='aud_emojis_learn_s1'),
+        dict(analysis='Split', name='aud/emojis/learn/s01'),
     ],
 #    snr=[
 #        dict(analysis='Split', name='aud_faces_learn_s1'),
@@ -139,6 +139,17 @@ params.report_params.update(  # add a couple of nice diagnostic plots
     psd=False,  # often slow
 )
 default = True
+
+# add exceptions for subjects with strange stuff
+
+for subject in params.subjects:
+    if subject == 'genz232_11a':
+        params.ecg_channel = 'EOG062'
+        params.eog_channel = ['ECG063', 'EOG061']
+    else:
+        params.ecg_channel = None
+        params.eog_channel = None
+
 mnefun.do_processing(
     params,
     fetch_raw=False,  # Fetch raw recording files from acq machine
@@ -147,12 +158,12 @@ mnefun.do_processing(
     do_sss=False, # Run SSS remotely
     fetch_sss=False,  # Fetch SSSed files
     do_ch_fix=False,  # Fix channel ordering
-    gen_ssp=False,  # Generate SSP vectors
+    gen_ssp=True,  # Generate SSP vectors
     apply_ssp=False,  # Apply SSP vectors and filtering
     write_epochs=False,  # Write epochs to disk
     gen_covs=False,  # Generate covariances
-    gen_fwd=True,  # Generate forward solutions (and source space if needed)
-    gen_inv=True,  # Generate inverses
+    gen_fwd=False,  # Generate forward solutions (and source space if needed)
+    gen_inv=False,  # Generate inverses
     gen_report=False,
     print_status=True,
 )

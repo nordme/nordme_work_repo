@@ -40,8 +40,12 @@ def find_files(pattern, path):
    return result
 
 
+
 subjects = ['316_13a'
             ]
+
+
+
 
 for subject in subjects:
     t0 = time.time()
@@ -172,4 +176,4 @@ for subject in subjects:
     # f.savefig(op.join(subjects_dir, subject, '%s_bem.png' % subject), dpi=200,
     #           format='png')
     # plt.close(plt.gcf())
-    print('    Time: %s mns' % round((time.time() - t0) / 60., 2))
+    print('    Time: %s mns' % round((time.time() - t-1) / 60., 2))
