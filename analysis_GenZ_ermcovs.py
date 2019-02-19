@@ -18,7 +18,7 @@ params = mnefun.Params(tmin=-0.1, tmax=0.75, t_adjust=0, n_jobs=4,
                        lp_trans='auto', bem_type='inner_skull')
 
 
-params.subjects = ['genz530_17a'
+params.subjects = ['genz232_11a'
                    ]
 params.work_dir = '/home/nordme/data/genz/genz_active/'
 
@@ -62,12 +62,12 @@ params.inv_runs = [np.arange(3, 6), np.arange(0, 3)]
 params.pick_events_cov = pick_aud_cov_events
 params.proj_nums = [[1, 1, 0],  # ECG: grad/mag/eeg
                     [1, 1, 0],  # EOG
-                    [1, 1, 0]]  # Continuous (from ERM)
+                    [0, 0, 0]]  # Continuous (from ERM)
 params.on_missing = 'ignore'  # some subjects will not complete the paradigm
 params.in_names = aud_in_names
 params.in_numbers = aud_in_numbers
 params.cov_method = 'empirical'
-params.runs_empty = ['%s_erm_01']
+params.runs_empty = ['%s_erm_01'] # add in the empty room covariance
 params.bem_type = '5120'
 # The ones we actually want
 params.analyses = [
@@ -119,16 +119,16 @@ params.report_params.update(  # add a couple of nice diagnostic plots
     whitening=[
         dict(analysis='All', name='aud',
              cov='%s-80-sss-cov.fif'),
-        dict(analysis='Split', name='aud_emojis_learn_s1',
+        dict(analysis='Split', name='aud/emojis/learn/s01',
              cov='%s-80-sss-cov.fif'),
     ],
     sensor=[
         dict(analysis='All', name='aud', times=aud_times),
-        dict(analysis='Split', name='aud_emojis_learn_s1', times=aud_times),
+        dict(analysis='Split', name='aud/emojis/learn/s01', times=aud_times),
     ],
     sensor_topo=[
         dict(analysis='All', name='aud'),
-        dict(analysis='Split', name='aud_emojis_learn_s1'),
+        dict(analysis='Split', name='aud/emojis/learn/s01'),
     ],
 #    snr=[
 #        dict(analysis='Split', name='aud_faces_learn_s1'),
@@ -142,26 +142,28 @@ default = True
 
 # add exceptions for subjects with strange stuff
 
-# if subject is 'genz232_9a':
-#     params.ecg_channel ='EOG062'
-#     params.eog_channel = 'ECG063'
-# else:
-#     continue
+for subject in params.subjects:
+    if subject == 'genz232_11a':
+        params.ecg_channel = 'EOG062'
+        params.eog_channel = ['ECG063', 'EOG061']
+    else:
+        params.ecg_channel = None
+        params.eog_channel = None
 
 mnefun.do_processing(
     params,
     fetch_raw=False,  # Fetch raw recording files from acq machine
-    do_score=True,  # do scoring
+    do_score=False,  # do scoring
     push_raw=False,  # Push raw files and SSS script to SSS workstation
-    do_sss=True, # Run SSS remotely
+    do_sss=False, # Run SSS remotely
     fetch_sss=False,  # Fetch SSSed files
     do_ch_fix=False,  # Fix channel ordering
     gen_ssp=True,  # Generate SSP vectors
-    apply_ssp=True,  # Apply SSP vectors and filtering
-    write_epochs=True,  # Write epochs to disk
-    gen_covs=True,  # Generate covariances
-    gen_fwd=True,  # Generate forward solutions (and source space if needed)
-    gen_inv=True,  # Generate inverses
+    apply_ssp=False,  # Apply SSP vectors and filtering
+    write_epochs=False,  # Write epochs to disk
+    gen_covs=False,  # Generate covariances
+    gen_fwd=False,  # Generate forward solutions (and source space if needed)
+    gen_inv=False,  # Generate inverses
     gen_report=False,
     print_status=True,
 )
