@@ -19,13 +19,15 @@ import fnmatch
 # from meeg_processing.utils import find_files
 
 # subjects_dir = get_subjects_dir(None, raise_error=True)
+
 subjects_dir = '/brainstudio/MEG/genz/anatomy'
 environ = copy.copy(os.environ)
 environ['SUBJECTS_DIR'] = subjects_dir
 run_recon = False
 do_rms = False
 do_flash = False
-n_jobs = 6
+n_jobs = 18
+subjects_dir = '/brainstudio/MEG/genz/anatomy'
 
 
 def find_files(pattern, path):
@@ -38,8 +40,8 @@ def find_files(pattern, path):
    return result
 
 
-subjects = ['530_17a',
-            '532_17a']
+subjects = ['316_13a'
+            ]
 
 for subject in subjects:
     t0 = time.time()
