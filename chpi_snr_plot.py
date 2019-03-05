@@ -3,23 +3,10 @@
 from __future__ import print_function, unicode_literals
 
 import os.path as op
-import time
-import warnings
-
-import numpy as np
-
 import mne
-from mne import read_proj
-from mne.io import read_raw_fif
-from mne.viz import plot_projs_topomap
-from mne.viz._3d import plot_head_positions
-from mne.viz import plot_snr_estimate
-from mne.report import Report
-
-
 import matplotlib.pyplot as plt
-from mnefun import plot_chpi_snr_raw
-from chpi_amplitude import plot_chpi_amplitude
+from mnefun import (plot_chpi_snr_raw, plot_good_coils)
+from chpi_amplitude import plot_chpi_amplitude, print_chpi_amplitude
 
 import itertools
 
@@ -42,25 +29,46 @@ for product in products:
     fnames.append(fname)
 
 
+# choose what you want to plot
+
+graph_snr = True
+
+graph_amplitude = True
+
+graph_distances = True
+
+print_amplitudes = True
+
 # create the graphs
 
+fnames = ['/home/nordme/data/cHPI_test/Mar_4/low_int_2_d0_1000_330_raw.fif']
+
 for file in fnames:
-    if 'square' in file:
-        f_path = op.join(raw_dir, file)
-        save_path = op.join(save_dir, file)
-        # graph snr
-        raw = mne.io.read_raw_fif(f_path, allow_maxshield=True)
-        t_window = 1
+    f_path = op.join(raw_dir, file)
+    save_path = op.join(save_dir, file)
+    raw = mne.io.read_raw_fif(f_path, allow_maxshield=True)
+    t_window = 1
+
+    # graph snr
+    if graph_snr:
         fig = plot_chpi_snr_raw(raw, t_window, show=False, verbose=False)
         fig.set_size_inches(10, 5)
         fig.subplots_adjust(0.1, 0.1, 0.8, 0.95, wspace=0, hspace=0.5)
         plt.close()
         fig.savefig(op.join(save_path[:-4] + '_snr.png'))
 
-        # graph amplitude
-        fig1 = plot_chpi_amplitude(raw, win_length=1, n_harmonics=None, save_path=save_path, fname=file)
+    # graph amplitude
+    if graph_amplitude:
+        fig1 = plot_chpi_amplitude(raw, win_length=1, n_harmonics=None, fname=file)
+        fig1.savefig(op.join(save_path[:-4] + '_ampl.png'))
         plt.close()
 
+    # graph coil distances over time
+    if graph_distances:
+        fig2 = plot_good_coils(raw, t_step=1, t_window=t_window)
+        fig2.savefig(op.join(save_path[:-4] + 'coil_dist.png'))
+        plt.close()
 
-
-
+    if print_amplitudes:
+        print('Amplitudes for %s' % file)
+        print(print_chpi_amplitude(raw, win_length=1, n_harmonics=None, fname=file))

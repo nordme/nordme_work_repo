@@ -21,33 +21,53 @@ import mne
 from os import path as op
 
 data_path = '/brainstudio/MEG/genz/genz_proc/active/'
+# data_path = '/home/nordme/data/genz/genz_active/'
+save_path = '/brainstudio/MEG/genz/genz_proc/active/grand_ave/'
 lpf = 80
 
-subjs = ['genz401_15a', 'genz403_15a', 'genz405_15a', 'genz406_15a',
-         'genz409_15a', 'genz411_15a', 'genz412_15a', 'genz413_15a',
-         'genz414_15a', 'genz415_15a', 'genz416_15a', 'genz417_15a',
-         'genz418_15a', 'genz419_15a', 'genz420_15a', 'genz421_15a',
-         'genz422_15a', 'genz423_15a', 'genz424_15a', 'genz425_15a',
-         'genz426_15a', 'genz427_15a', 'genz429_15a']
-        
-analysis = 'SPN'
+subjs = ['genz105_9a',
+         'genz106_9a',
+         'genz108_9a',
+         'genz110_9a',
+         'genz111_9a',
+         'genz112_9a',
+         'genz113_9a',
+         'genz114_9a',
+         #'genz115_9a',
+         'genz116_9a',
+         'genz117_9a',
+         'genz118_9a',
+         'genz119_9a',
+         'genz120_9a',
+         'genz122_9a',
+         'genz123_9a',
+         'genz124_9a',
+         'genz125_9a',
+         'genz126_9a',
+         'genz128_9a',
+         'genz130_9a',
+         'genz131_9a',
+         'genz133_9a']
+
+analysis = 'FRN'
 conditions = ['vis']
+age_group = '9a'
 
 do_split = True
-do_all = False
+do_all = True
 
 if do_all:
     for cond in conditions:
         evokeds = []
         for subj in subjs:
-            evoked_file = op.join(data_path, '%s' %subj, 'inverse',
+            evoked_file = op.join(data_path, '%s' % subj, 'inverse',
                                 '%s_%d-sss_eq_%s-ave.fif' % (analysis, lpf, subj))
             evoked = mne.read_evokeds(evoked_file, condition=cond, baseline=(None,0))
             assert evoked.comment == cond
             evokeds.append(evoked)
         grndavr = mne.grand_average(evokeds)
-        mne.Evoked.save(grndavr, op.join(data_path, '15a_%s-N%d-ave.fif'
-                                         % (analysis, len(subjs))))
+        mne.Evoked.save(grndavr, op.join(save_path, '%s_%s-N%d-ave.fif'
+                                         % (age_group, analysis, len(subjs))))
 if do_split:
 
     conditions = ['vis/emojis/learn/correct',
@@ -66,6 +86,6 @@ if do_split:
             assert evoked.comment == cond
             split_evokeds.append(evoked)
         grndavr = mne.grand_average(split_evokeds)
-        mne.Evoked.save(grndavr, op.join('/home/nordme/GitHub/', '15a_%s-N%d-%d-ave.fif'
-                                         % (analysis, len(subjs), i)))
-        print('Created file %s' % op.join('/home/nordme/GitHub/', '15a_%s-N%d-%d-ave.fif' % (analysis, len(subjs), i)))
+        mne.Evoked.save(grndavr, op.join(save_path, '%s_%s-N%d-%d-ave.fif'
+                                         % (age_group, analysis, len(subjs), i)))
+        print('Created file %s' % op.join(save_path, '%s_%s-N%d-%d-ave.fif' % (age_group, analysis, len(subjs), i)))
