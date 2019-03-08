@@ -388,7 +388,8 @@ def score(p, subjects, run_indices):
         print(extra + ' : '.join(beh_print))
 
         # Write out the behavioral CSV
-        with open(op.join(subj, '%s_behavioral.txt' % (subj,)), 'wb') as fid:
+        with open(op.join(subj, '%s_behavioral.txt' % subj), 'wb') as fid:
+            print('writing the behavioral csv here at %s' % op.join(subj, '%s_behavioral.txt' % subj))
             fid.write('vis,want,got,correct,rt\n'.encode())
             for row in csv:
                 fid.write(('%s,%d,%d,%d,%d\n' % tuple(row)).encode())
