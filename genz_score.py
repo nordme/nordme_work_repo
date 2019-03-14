@@ -233,11 +233,21 @@ def score(p, subjects, run_indices):
                     assert len(aud_number) == 3 * len(want_presses)
                     aud_number[swap_idx * 3: swap_idx * 3 + 3] = [10, 11, 12]
                     assert (want_presses == 1).sum() == 3
+                # get button presses
                 presses = mne.find_events(raw, 'STI101', mask=48,
                                           mask_type='and')
+                if subj == 'genz115_9a':
+                    if 'emojis_test' in raw_fname:
+                        presses = np.delete(presses, 3, 0)
+                        print('Deleting an extra button press.')
+                        print(presses)
+                    if 'thumbs_test' in raw_fname:
+                        presses = np.delete(presses, 8, 0)
+                        print('Deleting an extra button press.')
+                        print(presses)
                 presses[:, 2] >>= 4
                 if subj == 'genz332_13a':   # this subject had to use the yellow and green buttons
-                    assert np.in1d(presses[:, 2], [1,2,3].all())
+                    assert np.in1d(presses[:, 2], [1,2,3]).all()
                 else:
                     assert np.in1d(presses[:, 2], [1, 2]).all()
                 press_slots = np.searchsorted(
@@ -283,6 +293,9 @@ def score(p, subjects, run_indices):
            #  these can differ by one if the trial is stopped in between them
             if len(correctness_visual) == len(events_visual) + 1:
                 correctness_visual = correctness_visual[:-1]
+            if subj == 'genz115_9a':
+                if 'faces_learn' in raw_fname:
+                    events_visual = events_visual[1:,]  # remove an initial data blip from the visual channel
             assert (correctness_visual[:, 0] < events_visual[:, 0]).all()
             correctness_visual = correctness_visual[:, 2]  # just need the type
             assert np.in1d(correctness_visual, [4, 8]).all()
@@ -317,7 +330,7 @@ def score(p, subjects, run_indices):
             # Deal with simultaneous events before we concatenate events
             raw = mne.io.read_raw_fif(raw_fname, allow_maxshield='yes')
             presses = mne.find_events(raw, 'STI101', mask=48,
-                                      mask_type='and')
+                                      mask_type='and', shortest_event=1)
 
             a_v_bads = np.in1d(events_auditory[:,0], events_visual[:,0])
             p_v_bads = np.in1d(events_visual[:,0], presses[:,0])
@@ -375,7 +388,8 @@ def score(p, subjects, run_indices):
         print(extra + ' : '.join(beh_print))
 
         # Write out the behavioral CSV
-        with open(op.join(subj, '%s_behavioral.txt' % (subj,)), 'wb') as fid:
+        with open(op.join(subj, '%s_behavioral.txt' % subj), 'wb') as fid:
+            print('writing the behavioral csv here at %s' % op.join(subj, '%s_behavioral.txt' % subj))
             fid.write('vis,want,got,correct,rt\n'.encode())
             for row in csv:
                 fid.write(('%s,%d,%d,%d,%d\n' % tuple(row)).encode())
