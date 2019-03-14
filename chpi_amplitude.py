@@ -271,3 +271,87 @@ def print_chpi_amplitude(raw, win_length, n_harmonics=None, show=True,
              ['coil 5 mean power:', mean_5*1e20]]
 
     return means
+
+def print_snr(raw, win_length, n_harmonics=None, show=True,
+                      verbose=False, fname=None):
+
+    from mne.io.pick import pick_types
+
+    # get some info from fiff
+    sfreq = raw.info['sfreq']
+    linefreq = raw.info['line_freq']
+    if n_harmonics is not None:
+        linefreqs = (np.arange(n_harmonics + 1) + 1) * linefreq
+    else:
+        linefreqs = np.arange(linefreq, raw.info['lowpass'], linefreq)
+    buflen = int(win_length * sfreq)
+    if buflen <= 0:
+        raise ValueError('Window length should be >0')
+    cfreqs = _get_hpi_info(raw.info)[0]
+    if verbose:
+        print('Nominal cHPI frequencies: %s Hz' % cfreqs)
+        print('Sampling frequency: %s Hz' % sfreq)
+        print('Using line freqs: %s Hz' % linefreqs)
+        print('Using buffers of %s samples = %s seconds\n'
+              % (buflen, buflen/sfreq))
+
+    pick_meg = pick_types(raw.info, meg=True, exclude=[])
+    pick_mag = pick_types(raw.info, meg='mag', exclude=[])
+    pick_grad = pick_types(raw.info, meg='grad', exclude=[])
+    nchan = len(pick_meg)
+    # grad and mag indices into an array that already has meg channels only
+    pick_mag_ = np.in1d(pick_meg, pick_mag).nonzero()[0]
+    pick_grad_ = np.in1d(pick_meg, pick_grad).nonzero()[0]
+
+    # create general linear model for the data
+    t = np.arange(buflen) / float(sfreq)
+    model = np.empty((len(t), 2+2*(len(linefreqs)+len(cfreqs))))
+    model[:, 0] = t
+    model[:, 1] = np.ones(t.shape)
+    # add sine and cosine term for each freq
+    allfreqs = np.concatenate([linefreqs, cfreqs])
+    model[:, 2::2] = np.cos(2 * np.pi * t[:, np.newaxis] * allfreqs)
+    model[:, 3::2] = np.sin(2 * np.pi * t[:, np.newaxis] * allfreqs)
+    inv_model = linalg.pinv(model)
+
+    # drop last buffer to avoid overrun
+    bufs = np.arange(0, raw.n_times, buflen)[:-1]
+    tvec = bufs/sfreq
+    snr_avg_grad = np.zeros([len(cfreqs), len(bufs)])
+    hpi_pow_grad = np.zeros([len(cfreqs), len(bufs)])
+    snr_avg_mag = np.zeros([len(cfreqs), len(bufs)])
+    resid_vars = np.zeros([nchan, len(bufs)])
+    for ind, buf0 in enumerate(bufs):
+        if verbose:
+            print('Buffer %s/%s' % (ind+1, len(bufs)))
+        megbuf = raw[pick_meg, buf0:buf0+buflen][0].T
+        coeffs = np.dot(inv_model, megbuf)
+        coeffs_hpi = coeffs[2+2*len(linefreqs):]
+        resid_vars[:, ind] = np.var(megbuf-np.dot(model, coeffs), 0)
+        # get total power by combining sine and cosine terms
+        # sinusoidal of amplitude A has power of A**2/2
+        hpi_pow = (coeffs_hpi[0::2, :]**2 + coeffs_hpi[1::2, :]**2)/2
+        hpi_pow_grad[:, ind] = hpi_pow[:, pick_grad_].mean(1)
+        # divide average HPI power by average variance
+        snr_avg_grad[:, ind] = hpi_pow_grad[:, ind] / \
+            resid_vars[pick_grad_, ind].mean()
+        snr_avg_mag[:, ind] = hpi_pow[:, pick_mag_].mean(1) / \
+            resid_vars[pick_mag_, ind].mean()
+
+    # get mean SNR values
+
+    snr_avg_grad1 = 10*np.log10(snr_avg_grad)
+
+    snr_means = snr_avg_grad1.mean(1)
+    snr1 = snr_means[0]
+    snr2 = snr_means[1]
+    snr3 = snr_means[2]
+    snr4 = snr_means[3]
+    snr5 = snr_means[4]
+
+
+    # print snr values per coil per file
+    print('SNR for gradiometers:')
+    print('Coil 1: %d; \n Coil 2: %d \n Coil 3: %d \n Coil 4: %d \n Coil 5: %d' % (snr1, snr2, snr3, snr4, snr5))
+
+    return snr_means
