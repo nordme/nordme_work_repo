@@ -6,7 +6,7 @@ import os.path as op
 import mne
 import matplotlib.pyplot as plt
 from mnefun import (plot_chpi_snr_raw, plot_good_coils)
-from chpi_amplitude import plot_chpi_amplitude, print_chpi_amplitude
+from chpi_amplitude import (plot_chpi_amplitude, print_chpi_amplitude, print_snr)
 
 import itertools
 
@@ -37,13 +37,15 @@ graph_amplitude = False
 
 graph_distances = False
 
-print_amplitudes = True
+print_amplitudes = False
+
+print_SNR = True
 
 # create the graphs
 
 # fnames = ['/home/nordme/data/cHPI_test/Mar_4/low_int_2_d0_1000_330_raw.fif']
 for file in fnames:
-    if 'four' in file:
+    if 'one' in file:
         f_path = op.join(raw_dir, file)
         save_path = op.join(save_dir, file)
         raw = mne.io.read_raw_fif(f_path, allow_maxshield=True)
@@ -72,3 +74,7 @@ for file in fnames:
         if print_amplitudes:
             print('Amplitudes for %s' % file)
             print(print_chpi_amplitude(raw, win_length=1, n_harmonics=None, fname=file))
+
+        if print_SNR:
+            print('Mean SNR by coil for file %s' % file)
+            print(print_snr(raw, win_length=1, n_harmonics=None, fname=file))

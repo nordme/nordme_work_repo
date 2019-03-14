@@ -12,9 +12,6 @@ raw_dir = '/brainstudio/MEG/genz/'
 # target_dir = '/home/nordme/data/genz/genz_active/fix/'
 
 
-# Search all the genz subject directories on brainstudio for erms and resting states.
-# Eliminate pilot subjects.
-# Make lists attaching the subject names to the appropriate sub-directories and files.
 
 # subjs = [d for d in os.listdir(raw_dir) if 'genz' in d]
 
