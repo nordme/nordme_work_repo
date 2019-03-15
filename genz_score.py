@@ -36,7 +36,7 @@ subjects = [
     'genz_202_11a',
     'genz_302_13a', 'genz_303_13a',
     'genz_501_17a', 'genz_502_17a', 'genz_503_17a', 'genz_508_17a',
-    ]
+]
 
 # trial type
 kind_codes = dict(learn=100, test=200)
@@ -69,7 +69,7 @@ aud_numbers_manual = [
     20201, 20202, 20203, 20204, 20205, 20206, 20207, 20208, 20209, 20210, 20211, 20212,  # noqa
     30101, 30102, 30103,
     30201, 30202, 30203, 30204, 30205, 30206, 30207, 30208, 30209, 30210, 30211, 30212,  # noqa
-    ]
+]
 assert aud_numbers == aud_numbers_manual
 
 #
@@ -87,7 +87,7 @@ vis_numbers_manual = [
     11100, 12100, 11200, 12200,
     21100, 22100, 21200, 22200,
     31100, 32100, 31200, 32200,
-    ]
+]
 assert vis_numbers == vis_numbers_manual
 
 #
@@ -139,7 +139,7 @@ def score(p, subjects, run_indices):
         assert len(word_offsets) == 4
         want_resp.append(~mask[::3] + 1)
         assert len(want_resp[-1]) == n_resp, len(want_resp[-1])
-        words = ['-'.join(run_names[oi:oi+3]) for oi in word_offsets]
+        words = ['-'.join(run_names[oi:oi + 3]) for oi in word_offsets]
         for word in words:
             assert word in pseudowords[ii], (word, ii + 1)
     del words
@@ -190,16 +190,20 @@ def score(p, subjects, run_indices):
                 else:
                     events_auditory = events_auditory
             # debounce
-#            keep = np.concatenate([
-#                  [True],
-#                  np.diff(events_auditory[:, 0]) / raw.info['sfreq'] > 0.02])
-#            if not keep.all():
-#               print('    Debouncing %d trigger(s)' % ((~keep).sum(),))
-#            events_auditory = events_auditory[keep]
+            #            keep = np.concatenate([
+            #                  [True],
+            #                  np.diff(events_auditory[:, 0]) / raw.info['sfreq'] > 0.02])
+            #            if not keep.all():
+            #               print('    Debouncing %d trigger(s)' % ((~keep).sum(),))
+            #            events_auditory = events_auditory[keep]
             deltas = np.diff(events_auditory[:, 0]) / raw.info['sfreq']
             bins = [0., 0.74, 0.8, 6.4, 6.6, np.inf]
             hist = np.histogram(deltas, bins)[0]
             if '_learn_' in raw_fname:
+                if 'genz414_15a_faces_learn' in raw_fname:
+                    events_auditory = events_auditory[:-1]  # wierd audio blips at end of recording
+                if 'genz415_15a_faces_learn' in raw_fname:
+                    events_auditory = events_auditory[:-1]
                 assert len(events_auditory) == 420, len(events_auditory)
                 assert np.allclose(hist, [0, 419, 0, 0, 0], atol=1)
             else:
@@ -209,7 +213,7 @@ def score(p, subjects, run_indices):
                     if not np.allclose(hist, want):
                         print('    Auditory timing deviations %s -> %s in %s'
                               % (want, hist, op.basename(raw_fname)))
-            #encode the syllable and learn/test type
+            # encode the syllable and learn/test type
             if oi % 2 == 0:  # learn
                 assert kind_code == kind_codes['learn']
                 aud_number = np.arange(len(events_auditory)) % 3 + 1
@@ -236,6 +240,9 @@ def score(p, subjects, run_indices):
                 # get button presses
                 presses = mne.find_events(raw, 'STI101', mask=48,
                                           mask_type='and')
+                # some subjects pressed yellow and green nearly simultaneously
+                # we are considering only the first button pressed for behav
+                # so we eliminate the conflicting second button press
                 if subj == 'genz115_9a':
                     if 'emojis_test' in raw_fname:
                         presses = np.delete(presses, 3, 0)
@@ -245,9 +252,16 @@ def score(p, subjects, run_indices):
                         presses = np.delete(presses, 8, 0)
                         print('Deleting an extra button press.')
                         print(presses)
+                if 'genz311_13a_faces_test' in raw_fname:
+                    presses = np.delete(presses, 18, 0)
+                    presses = np.delete(presses, 26, 0)
+                    print('Removing extra (near simultaneous) button presses')
+                if 'genz406_15a_thumbs_test' in raw_fname:
+                    presses = np.delete(presses, 4, 0)
+                    print(presses)
                 presses[:, 2] >>= 4
-                if subj == 'genz332_13a':   # this subject had to use the yellow and green buttons
-                    assert np.in1d(presses[:, 2], [1,2,3]).all()
+                if subj == 'genz332_13a':  # this subject had to use the yellow and green buttons
+                    assert np.in1d(presses[:, 2], [1, 2, 3]).all()
                 else:
                     assert np.in1d(presses[:, 2], [1, 2]).all()
                 press_slots = np.searchsorted(
@@ -274,7 +288,7 @@ def score(p, subjects, run_indices):
                 pc = (got_presses == want_presses).mean() * 100
                 hit = (got_presses[want_presses == 1] == 1)
                 beh_print += ['%s %4.1f%% (%d/%d)' % (this_vis.ljust(6), pc,
-                              hit.sum(), len(hit))]
+                                                      hit.sum(), len(hit))]
                 csv.extend([[this_vis, w, g, w == g, r]
                             for w, g, r in
                             zip(want_presses, got_presses, got_rts)])
@@ -290,18 +304,18 @@ def score(p, subjects, run_indices):
             correctness_visual = mne.find_events(
                 raw, stim_channel='STI101', shortest_event=1, mask=12,
                 mask_type='and')
-           #  these can differ by one if the trial is stopped in between them
+            #  these can differ by one if the trial is stopped in between them
             if len(correctness_visual) == len(events_visual) + 1:
                 correctness_visual = correctness_visual[:-1]
-            if subj == 'genz115_9a':
-                if 'faces_learn' in raw_fname:
-                    events_visual = events_visual[1:,]  # remove an initial data blip from the visual channel
+            if 'genz115_9a_faces_learn' in raw_fname:
+                print('Genz115_9a has a equipment-generated blip in faces_learn. Removing.')
+                events_visual = events_visual[1:]
             assert (correctness_visual[:, 0] < events_visual[:, 0]).all()
             correctness_visual = correctness_visual[:, 2]  # just need the type
             assert np.in1d(correctness_visual, [4, 8]).all()
             correctness_visual //= 4  # 1=correct, 2=incorrect
             correctness_visual *= 1000
-    #         encode correctness
+            #         encode correctness
             assert np.in1d(correctness_visual, [1000, 2000]).all()
             deltas = np.diff(events_visual[:, 0]) / raw.info['sfreq']
             hist = np.histogram(deltas, bins)[0]
@@ -332,9 +346,9 @@ def score(p, subjects, run_indices):
             presses = mne.find_events(raw, 'STI101', mask=48,
                                       mask_type='and', shortest_event=1)
 
-            a_v_bads = np.in1d(events_auditory[:,0], events_visual[:,0])
-            p_v_bads = np.in1d(events_visual[:,0], presses[:,0])
-            p_a_bads = np.in1d(presses[:,0], events_auditory[:,0])
+            a_v_bads = np.in1d(events_auditory[:, 0], events_visual[:, 0])
+            p_v_bads = np.in1d(events_visual[:, 0], presses[:, 0])
+            p_a_bads = np.in1d(presses[:, 0], events_auditory[:, 0])
 
             print('Simultaneous events: %s, %s, %s' %
                   (events_auditory[a_v_bads], events_visual[p_v_bads], presses[p_a_bads]))
@@ -365,12 +379,12 @@ def score(p, subjects, run_indices):
                 print('Simultaneous events found: auditory and visual')
 
             try:
-                assert not np.in1d(presses[:,0], events_visual[:,0]).any()
+                assert not np.in1d(presses[:, 0], events_visual[:, 0]).any()
             except AssertionError:
                 print('Simultaneous events found: button press and visual')
 
             try:
-                assert not np.in1d(presses[:,0], events_auditory[:,0]).any()
+                assert not np.in1d(presses[:, 0], events_auditory[:, 0]).any()
             except AssertionError:
                 print('Simultaneous events found: button press and auditory')
 
@@ -379,10 +393,10 @@ def score(p, subjects, run_indices):
             #
 
             events = events[np.argsort(events[:, 0])]
-            np.diff(events[:,0])
+            np.diff(events[:, 0])
             assert (np.diff(events[:, 0]) > 0).all()  # one last check that all events have a unique timestamp
             mne.write_events(eve_fnames[ri], events)
-            
+
         assert blocks_used.all()
         extra = '    ' if verbose else ' '
         print(extra + ' : '.join(beh_print))
