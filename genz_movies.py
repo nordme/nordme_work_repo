@@ -7,83 +7,54 @@ import mne
 import numpy as np
 
 
-# set important variables
+# set variables
 
-raw_dir = '/home/nordme/data/genz/genz_active/'
-# raw_dir = '/brainstudio/MEG/genz/genz_proc/active/'
-anat_dir = '/brainstudio/MEG/genz/anatomy/'
+vis_or_aud = 'visual' # 'visual' or 'auditory'
+
+signed = True
+
+dSPM = False
+
+if signed:
+    tag = '/signed/'
+    clim = {'kind': 'percent', 'pos_lims': np.arange(96, 101, 2)}
+else:
+   tag = '/'
+   clim = {'kind': 'percent', 'lims': np.arange(96, 101, 2)}
+
+if dSPM:
+    aves_dir = '/home/nordme/data/genz/genz_active/dSPM_ave/%s%s' % (vis_or_aud, tag)
+    movie_path = '/home/nordme/data/genz/genz_active/movies/dSPM%/%s%s' % (vis_or_aud, tag)
+    method = 'dSPM'
+else:
+    aves_dir = '/home/nordme/data/genz/genz_active/eLORETA_ave/%s%s' % (vis_or_aud, tag)
+    movie_path = '/home/nordme/data/genz/genz_active/movies/eLORETA/%s%s' % (vis_or_aud, tag)
+    method = 'eLORETA'
 
 subjects = []
 
 subject = 'genz131_9a'
 
+# enter the names of the stc files you wish to turn into movies
 
-# state which conditions you want to subtract
+stcs = ['both_9_SPN_faces_correct_signed']
 
-cond_1 =
+# stcs = [s for s in os.listdir(aves_dir) if '-lh' in s]
 
-cond_2 =
+# read in the stc and plot it
 
+for stc in stcs:
+    stc_plot = mne.read_source_estimate(op.join(aves_dir, '%s' % stc))
 
-
-
-
-ave1 = 0
-
-ave2 = 0
-
-groups = []
-
-by age:
-    by gender and age:
-
-    by age:
-
-altogether:
-
-
-
-for group in groups:
-    for subject in group:
-
-        # read in the source estimates
-
-        diff_1 = mne.read_source_estimate()
-
-        diff_2 = mne.read_source_estimate()
-
-        # create the sums, then create the mean data
-
-        ave1 += diff_1
-
-        ave2 += diff_2
-
-    ave1 /= len(subjects)
-
-    assert ave1.data.ndim == 2 and ave1.data.shape[0] == 8196
-
-    ave1.save()
-
-    ave2 /= len(subjects)
-
-    assert ave2.data.ndim == 2 and ave2.data.shape[0] == 8196
-
-    ave2.save()
-
-    # take the differences of the two means
-
-    diff = ave1-ave2
-
-    assert diff.data.ndim == 2 and diff.data.shape[0] == 8196
-
-    # plot the difference
-
-    diff_plot = diff.plot(surface='inflated', hemi='split', colormap='cool', views = ['lat', 'med'], size=800)
+    plot = stc_plot.plot(subject='fsaverage', surface='inflated', hemi='split', colormap='cool', views=['lat', 'med'],
+                         size=800, clim=clim, title='method=%s 98+ percent peak' % method)
 
     # save the movie of the difference plot
 
-    save_name =
+    save_name = op.join(movie_path, '%s.mov' % stc)
 
-    diff_plot.save_movie(fname=save_name, time_dilation=24, framerate=20, interpolation='linear')
+    plot.save_movie(fname=save_name, time_dilation=24, framerate=20, interpolation='linear')
+
+    plot.close()
 
 

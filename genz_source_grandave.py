@@ -1,7 +1,6 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 
-import os
 import os.path as op
 import mne
 import numpy as np
@@ -11,11 +10,28 @@ from itertools import product
 ### SOURCE SPACE GRAND AVERAGES SCRIPT
 # set important variables
 
-raw_dir = '/home/nordme/data/genz/genz_active/'
+
+# raw_dir = '/home/nordme/data/genz/genz_active/'
+raw_dir = '/home/nordme/data/genz/genz_active/eLORETA/'
+# save_dir = '/home/nordme/data/genz/genz_active/stc_aves/'
+save_dir = '/home/nordme/data/genz/genz_active/eLORETA/stc_aves/'
 # raw_dir = '/brainstudio/MEG/genz/genz_proc/active/'
 anat_dir = '/brainstudio/MEG/genz/anatomy/'
 
-subjects = []
+
+subjects = ['genz111_9a',
+            'genz115_9a',
+            'genz130_9a',
+            'genz131_9a',
+            'genz225_11a',
+            'genz232_11a',
+            'genz334_13a',
+            #'genz335_13a',
+            'genz429_15a',
+            'genz430_15a',
+            'genz529_17a',
+            'genz530_17a',
+            ]
 
 codes = ['al01',
          'al02',
@@ -88,10 +104,12 @@ both = [[], [], [], [], [], []]
 
 genders = [both, male, feml]
 
-gender_names = ['both', 'male', 'feml']
+gender_names = ['both', 'male', 'female']
 
 master_list = []
 
+# create subject pools (gender x age) since each grand average will need to draw on a different set of subjects
+# index 0 corresponds to subjects of all ages
 for i, age in enumerate(ages):
     feml[i] = [sub for sub in subjects if '%sa' % age in sub and int(sub[4:7]) % 2 == 0]
     male[i] = [sub for sub in subjects if '%sa' % age in sub and int(sub[4:7]) % 2 != 0]
@@ -99,96 +117,63 @@ for i, age in enumerate(ages):
     feml[0] = [sub for sub in subjects if int(sub[4:7]) % 2 == 0]
     male[0] = [sub for sub in subjects if int(sub[4:7]) % 2 != 0]
     both[0] = [sub for sub in subjects]
+    print('Finished creating age pool %s for stc averaging.' % age)
 
+# make a master list of subject pools to average over
+# with handy entries that include the list of relevant subjects as well as the gender and age
 for gender, gender_name in zip(genders, gender_names):
-    for i in range[0:6]:
+    for i in np.arange(6):
         master_list.append([gender_name, '%d' % (i*2+7), gender[i]])
+        print('Added %s %d to master list of subject pools.' % (gender_name, i))
+
+# create visual grand averages
+
+print('Beginning work on visual stcs.')
+
+epoch = ['FRN', 'SPN']
+
+blocks = ['faces', 'emojis', 'thumbs', 'allblocks']
+
+feedback = ['correct', 'incorrect', 'bothfdbk']
+
+vis_conds = [[e, b, f] for e in epoch for b in blocks for f in feedback]
+
+vcodes = ['%s_%s_%s' % (e, b, f) for e in epoch for b in blocks for f in feedback]
 
 for list in master_list:
     gname, age, subjects = list
+    print('Working on visuals for group %s %s.' % (gname, age))
+    for vcode in vcodes:
+        ave_path = op.join(save_dir, '%s_%s_%s' % (gname, age, vcode))
+        stc_ave = 0
         for subject in subjects:
-            for code in codes:
-                stc_ave = 0
-                ave_path = op.join(raw_dir, 'stc_aves', '%s_%s_%s' % (gname, age, code))
-                for subject in subjects:
-                    stc_path = op.join(raw_dir, subject, 'stc', '%s_%s' % (code, subject))
-                    stc = mne.read_source_estimate(stc_path)
-                    stc_ave += stc
-                stc_ave /= len(subjects)
-                assert stc_ave.data.ndim == 2 and stc_ave.data.shape[0] == 8196
-                stc_ave.save(ave_path)
+            stc_path = op.join(raw_dir, subject, 'stc', 'visual', '%s_%s_morphed' % (vcode, subject))
+            stc = mne.read_source_estimate(stc_path)
+            stc_ave += stc
+        try:
+            stc_ave /= len(subjects)
+            assert stc_ave.data.ndim == 2 and stc_ave.data.shape[0] == 20484
+            stc_ave.save(ave_path)
+            print('Saved stc ave %s.' % ave_path)
+        except ZeroDivisionError:
+            print('Hmm. Looks like we need subjects for group %s %s.' % (gname, age))
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-if by_gender:
-    for j, (stc, code) in enumerate(zip(stcs, codes)):
-        m_evokeds = []
-        f_evokeds = []
-        for subj in subjs:
-            if int(subj[4:7]) % 2 == 0:  # if the subject number is even, the subject is a girl
-                gender = 'f'
-            else:
-                gender = 'm'
-            evoked_file = op.join(data_path, '%s' % subj, 'inverse',
-                                  '%s_%d-sss_eq_%s-ave.fif'
-                                  % (analysis, lpf, subj))
-            evoked = mne.read_evokeds(evoked_file, condition=cond,
-                                      baseline=(None, 0))
-            assert evoked.comment == cond
-            if gender == 'f':
-                f_evokeds.append(evoked)
-            else:
-                m_evokeds.append(evoked)
-        print('f_evokeds: %s' % len(f_evokeds))
-        print('m_evokeds: %s' % len(m_evokeds))
-        f_gaves.append(mne.grand_average(f_evokeds))
-        f_gaves[j].comment = 'f_%s' % cond
-        m_gaves.append(mne.grand_average(m_evokeds))
-        m_gaves[j].comment = 'm_%s' % cond
-    mne.write_evokeds(op.join(avg_path, 'f' + 'AUD_%s_%s_N%d-ave.fif'
-                              % (age, analysis, len(f_evokeds))), f_gaves)
-    mne.write_evokeds(op.join(avg_path, 'm' + 'AUD_%s_%s_N%d-ave.fif'
-                              % (age, analysis, len(m_evokeds))), m_gaves)
-
-
-if by_all:
-    for j, (cond, name) in enumerate(zip(conditions, names)):
-        evokeds = []
-        for subj in subjs:
-            evoked_file = op.join(data_path, '%s' %subj, 'inverse',
-                                  '%s_%d-sss_eq_%s-ave.fif'
-                                  % (analysis, lpf, subj))
-            evoked = mne.read_evokeds(evoked_file, condition=cond,
-                                      baseline=(None,0))
-            assert evoked.comment == cond
-            evokeds.append(evoked)
-        gaves.append(mne.grand_average(evokeds))
-        gaves[j].comment = cond
-        mne.write_evokeds(op.join(avg_path, 'AUD_%s_%s_N%d-ave.fif'
-                                  % (age, analysis, len(subjs))), gaves)
-
-
+# create auditory grand averages
+for list in master_list:
+    gname, age, subjects = list
+    print('Working on group %s %s.' % (gname, age))
+    for code in codes:
+        ave_path = op.join(save_dir, '%s_%s_%s' % (gname, age, code))
+        stc_ave = 0
+        for subject in subjects:
+            stc_path = op.join(raw_dir, subject, 'stc', 'auditory', '%s_%s_morphed' % (code, subject))
+            stc = mne.read_source_estimate(stc_path)
+            stc_ave += stc
+        try:
+            stc_ave /= len(subjects)
+            assert stc_ave.data.ndim == 2 and stc_ave.data.shape[0] == 20484
+            stc_ave.save(ave_path)
+            print('Saved stc ave %s.' % ave_path)
+        except ZeroDivisionError:
+            print('Hmm. Looks like we need subjects for group %s %s.' % (gname, age))
