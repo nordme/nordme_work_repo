@@ -9,11 +9,11 @@ import numpy as np
 
 # set variables
 
-vis_or_aud = 'visual' # 'visual' or 'auditory'
+vis_or_aud = 'auditory' # 'visual' or 'auditory'
 
-signed = True
+signed = False
 
-dSPM = False
+dSPM = True
 
 if signed:
     tag = '/signed/'
@@ -23,23 +23,20 @@ else:
    clim = {'kind': 'percent', 'lims': np.arange(96, 101, 2)}
 
 if dSPM:
-    aves_dir = '/home/nordme/data/genz/genz_active/dSPM_ave/%s%s' % (vis_or_aud, tag)
-    movie_path = '/home/nordme/data/genz/genz_active/movies/dSPM%/%s%s' % (vis_or_aud, tag)
+    aves_dir = '/brainstudio/MEG/genz/genz_proc/active/twa_hp/dSPM_ave/%s%s' % (vis_or_aud, tag)
+    movie_path = '/brainstudio/MEG/genz/genz_proc/active/twa_hp/movies/dSPM/%s%s' % (vis_or_aud, tag)
     method = 'dSPM'
 else:
-    aves_dir = '/home/nordme/data/genz/genz_active/eLORETA_ave/%s%s' % (vis_or_aud, tag)
-    movie_path = '/home/nordme/data/genz/genz_active/movies/eLORETA/%s%s' % (vis_or_aud, tag)
+    aves_dir = '/brainstudio/MEG/genz/genz_proc/active/twa_hp/eLORETA_ave/%s%s' % (vis_or_aud, tag)
+    movie_path = '/brainstudio/MEG/genz/genz_proc/active/twa_hp/movies/eLORETA/%s%s' % (vis_or_aud, tag)
     method = 'eLORETA'
 
-subjects = []
-
-subject = 'genz131_9a'
 
 # enter the names of the stc files you wish to turn into movies
 
-stcs = ['both_9_SPN_faces_correct_signed']
+# stcs = ['both_9_SPN_faces_correct_signed']
 
-# stcs = [s for s in os.listdir(aves_dir) if '-lh' in s]
+stcs = [s for s in os.listdir(aves_dir) if '-lh' in s and 'both' in s]
 
 # read in the stc and plot it
 

@@ -1,5 +1,6 @@
 #!/usr/bin/env python2
 # -*- coding: utf-8 -*-
+import os
 import os.path as op
 import mne
 import numpy as np
@@ -8,11 +9,10 @@ import numpy as np
 ### SOURCE SPACE GRAND AVERAGES SCRIPT
 # set important variables
 
-raw_dir = '/home/nordme/data/genz/genz_active/'
 
-signed = True
+signed = False
 
-method = 'eLORETA'
+method = 'dSPM'
 
 skip_visual = False
 
@@ -25,25 +25,14 @@ else:
    tag = '/'
    ext = ''
 
-
+# raw_dir = '/home/nordme/data/genz/genz_active/'
 # raw_dir = '/brainstudio/MEG/genz/genz_proc/active/'
-raw_dir = '/home/nordme/data/genz/genz_active/'
+raw_dir = '/brainstudio/MEG/genz/genz_proc/active/twa_hp/'
 anat_dir = '/brainstudio/MEG/genz/anatomy/'
 
+subjects = [x for x in os.listdir(raw_dir) if op.isdir('%s%s' % (raw_dir, x)) and 'genz' in x]
+subjects.sort()
 
-subjects = ['genz111_9a',
-            'genz115_9a',
-            'genz130_9a',
-            'genz131_9a',
-            'genz225_11a',
-            'genz232_11a',
-            'genz334_13a',
-            #'genz335_13a',
-            'genz429_15a',
-            'genz430_15a',
-            'genz529_17a',
-            #'genz530_17a',
-            ]
 
 codes = ['al01',
          'al02',
@@ -162,25 +151,24 @@ else:
     print('Beginning work on visual stcs.')
     for list in master_list:
         gname, age, subjects = list
-        if 'allage' in age:
-            print('Working on visuals for group %s %s.' % (gname, age))
-            for vcode in vcodes:
-                save_path = op.join(vave_dir, '%s_%s_%s%s' % (gname, age, vcode, ext))
-                stc_ave = 0
-                for subject in subjects:
-                    stc_path = op.join(raw_dir, subject, '%s_stc' % method, 'visual', '%s_%s_morphed' % (vcode, subject))
-                    stc = mne.read_source_estimate(stc_path)
-                    if signed:
-                        stc_ave += stc
-                    else:
-                        stc_ave += abs(stc)
-                try:
-                    stc_ave /= len(subjects)
-                    assert stc_ave.data.ndim == 2 and stc_ave.data.shape[0] == 20484
-                    stc_ave.save(save_path)
-                    print('Saved stc ave %s.' % save_path)
-                except ZeroDivisionError:
-                    print('Hmm. Looks like we need subjects for group %s %s.' % (gname, age))
+        print('Working on visuals for group %s %s.' % (gname, age))
+        for vcode in vcodes:
+            save_path = op.join(vave_dir, '%s_%s_%s%s' % (gname, age, vcode, ext))
+            stc_ave = 0
+            for subject in subjects:
+                stc_path = op.join(raw_dir, subject, '%s_stc' % method, 'visual', '%s_%s_morphed' % (vcode, subject))
+                stc = mne.read_source_estimate(stc_path)
+                if signed:
+                    stc_ave += stc
+                else:
+                    stc_ave += abs(stc)
+            try:
+                stc_ave /= len(subjects)
+                assert stc_ave.data.ndim == 2 and stc_ave.data.shape[0] == 20484
+                stc_ave.save(save_path)
+                print('Saved stc ave %s.' % save_path)
+            except ZeroDivisionError:
+                print('Hmm. Looks like we need subjects for group %s %s.' % (gname, age))
 
 
 # create auditory grand averages
