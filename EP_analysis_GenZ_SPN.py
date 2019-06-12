@@ -2,16 +2,20 @@
 """
 GenZ analysis script for SPN analysis.
 """
-
+import os
+import os.path as op
 import mnefun
 import numpy as np
-from score import (score, vis_names, vis_numbers,
+from genz_score import (score, vis_names, vis_numbers,
                    pick_aud_cov_events, pick_vis_cov_events)
+
+raw_dir = '/brainstudio/MEG/genz/genz_proc/active/twa_hp/'
+subjs = [x for x in os.listdir(raw_dir) if op.isdir('%s%s' % (raw_dir, x)) and 'genz' in x]
 
 params = mnefun.Params(tmin=-2.2, tmax=0.1, t_adjust=0, decim=4, lp_cut=80,
                        bmin=-2.2, bmax=-2.0)
-params.work_dir = '/brainstudio/MEG/genz/genz_proc/active'
-params.subjects = ['genz324_13a', 'genz428_15a']
+params.work_dir = '/brainstudio/MEG/genz/genz_proc/active/twa_hp/'
+params.subjects = subjs
 params.subject_indices = np.arange(len(params.subjects))
 #params.subject_indices = np.setdiff1d(np.arange(len(params.subjects)), [4,6,7]) 
 params.run_names = [

@@ -88,7 +88,7 @@ params.out_numbers = [  # these don't matter as long as they don't overlap...
     100000 * np.arange(1, len(params.in_names) + 1),
     ]
 # do not trial count match for now
-params.must_match = [[]] * len(params.analyses)
+params.must_match = [']
 aud_times = [0.09, 0.25]
 vis_times = [0.17, 0.22]
 #params.report_params.update(  # add a couple of nice diagnostic plots
