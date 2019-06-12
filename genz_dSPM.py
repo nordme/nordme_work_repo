@@ -8,8 +8,11 @@ from mne.minimum_norm import (apply_inverse, read_inverse_operator)
 
 # set important variables
 
-raw_dir = '/home/nordme/data/genz/genz_active/'
-# raw_dir = '/brainstudio/MEG/genz/genz_proc/active/'
+#raw_dir = '/home/nordme/data/genz/genz_active/'
+
+equalize = True
+
+raw_dir = '/brainstudio/MEG/genz/genz_proc/active/twa_hp/'
 anat_dir = '/brainstudio/MEG/genz/anatomy/'
 
 try_eLORETA = True
@@ -19,22 +22,18 @@ if try_eLORETA:
 else:
     method = 'dSPM'
 
-subjects = ['genz111_9a',
-            'genz115_9a',
-            'genz130_9a',
-            'genz131_9a',
-            'genz225_11a',
-            'genz232_11a',
-            'genz334_13a',
-            # 'genz335_13a',
-            'genz429_15a',
-            'genz430_15a',
-            'genz529_17a',
-            #'genz530_17a'
-            ]
+subjects = [x for x in os.listdir(raw_dir) if op.isdir('%s%s' % (raw_dir, x)) and 'genz' in x]
+subjects.sort()
 
 snr = 3.
 lambda2 = 1. / snr ** 2
+
+
+blocks = [ 'a','f', 'e', 't']
+conditions = ['l', 't']
+syllables = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12']
+
+
 
 for subject in subjects:
     # create directories and paths
@@ -77,203 +76,89 @@ for subject in subjects:
 
     # code pattern:  block, condition, syllable position
     # a = all blocks, f = faces, e = emojis, t = thumbs; l = learn condition, t = test condition
+    
+    all_epochs = [    
+        # all learn blocks by syllable position (e.g. all the s01s from faces, emojis, thumbs together)
+        epochs['learn/s01'],
+        epochs['learn/s02'],
+        epochs['learn/s03'],
+    
+        # learn blocks separately (i.e. s01, s02, and s03 split by faces, emojis, and thumbs)
+        epochs['faces/learn/s01'],
+        epochs['faces/learn/s02'],
+        epochs['faces/learn/s03'],
+        epochs['emojis/learn/s01'],
+        epochs['emojis/learn/s02'],
+        epochs['emojis/learn/s03'],
+        epochs['thumbs/learn/s01'],
+        epochs['thumbs/learn/s02'],
+        epochs['thumbs/learn/s03'],
+    
+        # all test block syllables (collapsed across f/e/t)
+        epochs['test/s01'],
+        epochs['test/s02'],
+        epochs['test/s03'],
+        epochs['test/s04'],
+        epochs['test/s05'],
+        epochs['test/s06'],
+        epochs['test/s07'],
+        epochs['test/s08'],
+        epochs['test/s09'],
+        epochs['test/s10'],
+        epochs['test/s11'],
+        epochs['test/s12'],
+    
+        # test block syllables separated by f/e/t
+        # 1,2,3 = real "words"
+        # 4,5,6 = near miss words
+        # 7,8,9 = near misses type 2
+        # 10, 11, 12 = random syllable combos
+        epochs['faces/test/s01'],
+        epochs['faces/test/s02'],
+        epochs['faces/test/s03'],
+        epochs['faces/test/s04'],
+        epochs['faces/test/s05'],
+        epochs['faces/test/s06'],
+        epochs['faces/test/s07'],
+        epochs['faces/test/s08'],
+        epochs['faces/test/s09'],
+        epochs['faces/test/s10'],
+        epochs['faces/test/s11'],
+        epochs['faces/test/s12'],
+        # emojis
+        epochs['emojis/test/s01'],
+        epochs['emojis/test/s02'],
+        epochs['emojis/test/s03'],
+        epochs['emojis/test/s04'],
+        epochs['emojis/test/s05'],
+        epochs['emojis/test/s06'],
+        epochs['emojis/test/s07'],
+        epochs['emojis/test/s08'],
+        epochs['emojis/test/s09'],
+        epochs['emojis/test/s10'],
+        epochs['emojis/test/s11'],
+        epochs['emojis/test/s12'],
+        # thumbs
+        epochs['thumbs/test/s01'],
+        epochs['thumbs/test/s02'],
+        epochs['thumbs/test/s03'],
+        epochs['thumbs/test/s04'],
+        epochs['thumbs/test/s05'],
+        epochs['thumbs/test/s06'],
+        epochs['thumbs/test/s07'],
+        epochs['thumbs/test/s08'],
+        epochs['thumbs/test/s09'],
+        epochs['thumbs/test/s10'],
+        epochs['thumbs/test/s11'],
+        epochs['thumbs/test/s12']]
 
-    # all learn blocks by syllable position (e.g. all the s01s from faces, emojis, thumbs together)
-    al01 = epochs['learn/s01']
-    al02 = epochs['learn/s02']
-    al03 = epochs['learn/s03']
 
-    # learn blocks separately (i.e. s01, s02, and s03 split by faces, emojis, and thumbs)
-    fl01 = epochs['faces/learn/s01']
-    fl02 = epochs['faces/learn/s02']
-    fl03 = epochs['faces/learn/s03']
-    el01 = epochs['emojis/learn/s01']
-    el02 = epochs['emojis/learn/s02']
-    el03 = epochs['emojis/learn/s03']
-    tl01 = epochs['thumbs/learn/s01']
-    tl02 = epochs['thumbs/learn/s02']
-    tl03 = epochs['thumbs/learn/s03']
-
-    # all test block syllables (collapsed across f/e/t)
-    at01 = epochs['test/s01']
-    at02 = epochs['test/s02']
-    at03 = epochs['test/s03']
-    at04 = epochs['test/s04']
-    at05 = epochs['test/s05']
-    at06 = epochs['test/s06']
-    at07 = epochs['test/s07']
-    at08 = epochs['test/s08']
-    at09 = epochs['test/s09']
-    at10 = epochs['test/s10']
-    at11 = epochs['test/s11']
-    at12 = epochs['test/s12']
-
-    # test block syllables separated by f/e/t
-    # 1,2,3 = real "words"
-    ft01 = epochs['faces/test/s01']
-    ft02 = epochs['faces/test/s02']
-    ft03 = epochs['faces/test/s03']
-    et01 = epochs['emojis/test/s01']
-    et02 = epochs['emojis/test/s02']
-    et03 = epochs['emojis/test/s03']
-    tt01 = epochs['thumbs/test/s01']
-    tt02 = epochs['thumbs/test/s02']
-    tt03 = epochs['thumbs/test/s03']
-    # 4,5,6 = near miss words
-    ft04 = epochs['faces/test/s04']
-    ft05 = epochs['faces/test/s05']
-    ft06 = epochs['faces/test/s06']
-    et04 = epochs['emojis/test/s04']
-    et05 = epochs['emojis/test/s05']
-    et06 = epochs['emojis/test/s06']
-    tt04 = epochs['thumbs/test/s04']
-    tt05 = epochs['thumbs/test/s05']
-    tt06 = epochs['thumbs/test/s06']
-    # 7,8,9 = near misses
-    ft07 = epochs['faces/test/s07']
-    ft08 = epochs['faces/test/s08']
-    ft09 = epochs['faces/test/s09']
-    et07 = epochs['emojis/test/s07']
-    et08 = epochs['emojis/test/s08']
-    et09 = epochs['emojis/test/s09']
-    tt07 = epochs['thumbs/test/s07']
-    tt08 = epochs['thumbs/test/s08']
-    tt09 = epochs['thumbs/test/s09']
-    # 10, 11, 12 = random syllable combos
-    ft10 = epochs['faces/test/s10']
-    ft11 = epochs['faces/test/s11']
-    ft12 = epochs['faces/test/s12']
-    et10 = epochs['emojis/test/s10']
-    et11 = epochs['emojis/test/s11']
-    et12 = epochs['emojis/test/s12']
-    tt10 = epochs['thumbs/test/s10']
-    tt11 = epochs['thumbs/test/s11']
-    tt12 = epochs['thumbs/test/s12']
-
-
-
-    all_epochs = [al01,
-                  al02,
-                  al03,
-                  fl01,
-                  fl02,
-                  fl03,
-                  el01,
-                  el02,
-                  el03,
-                  tl01,
-                  tl02,
-                  tl03,
-                  ft01,
-                  ft02,
-                  ft03,
-                  et01,
-                  et02,
-                  et03,
-                  tt01,
-                  tt02,
-                  tt03,
-                  ft04,
-                  ft05,
-                  ft06,
-                  et04,
-                  et05,
-                  et06,
-                  tt04,
-                  tt05,
-                  tt06,
-                  ft07,
-                  ft08,
-                  ft09,
-                  et07,
-                  et08,
-                  et09,
-                  tt07,
-                  tt08,
-                  tt09,
-                  ft10,
-                  ft11,
-                  ft12,
-                  et10,
-                  et11,
-                  et12,
-                  tt10,
-                  tt11,
-                  tt12,
-                  at01,
-                  at02,
-                  at03,
-                  at04,
-                  at05,
-                  at06,
-                  at07,
-                  at08,
-                  at09,
-                  at10,
-                  at11,
-                  at12]
-
-    codes = ['al01',
-             'al02',
-             'al03',
-             'fl01',
-             'fl02',
-             'fl03',
-             'el01',
-             'el02',
-             'el03',
-             'tl01',
-             'tl02',
-             'tl03',
-             'ft01',
-             'ft02',
-             'ft03',
-             'et01',
-             'et02',
-             'et03',
-             'tt01',
-             'tt02',
-             'tt03',
-             'ft04',
-             'ft05',
-             'ft06',
-             'et04',
-             'et05',
-             'et06',
-             'tt04',
-             'tt05',
-             'tt06',
-             'ft07',
-             'ft08',
-             'ft09',
-             'et07',
-             'et08',
-             'et09',
-             'tt07',
-             'tt08',
-             'tt09',
-             'ft10',
-             'ft11',
-             'ft12',
-             'et10',
-             'et11',
-             'et12',
-             'tt10',
-             'tt11',
-             'tt12',
-             'at01',
-             'at02',
-             'at03',
-             'at04',
-             'at05',
-             'at06',
-             'at07',
-             'at08',
-             'at09',
-             'at10',
-             'at11',
-             'at12']
-
+    codes = ['%s%s%02d' % (block, condition, syllable) 
+                    for condition in conditions                
+                    for block in blocks                    
+                    for syllable in (range(1,13) if condition == 't' else range(1,4))]
+    
+   
     print('Creating stcs for subject %s' % subject)
 
     for code, epoch in zip(codes, all_epochs):

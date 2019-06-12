@@ -9,18 +9,18 @@ import numpy as np
 
 # set variables
 
-vis_or_aud = 'auditory' # 'visual' or 'auditory'
+vis_or_aud = 'visual' # 'visual' or 'auditory'
 
 signed = False
 
-dSPM = True
+dSPM = False
 
 if signed:
     tag = '/signed/'
     clim = {'kind': 'percent', 'pos_lims': np.arange(96, 101, 2)}
 else:
    tag = '/'
-   clim = {'kind': 'percent', 'lims': np.arange(96, 101, 2)}
+   clim = {'kind': 'percent', 'lims': [96, 98, 100] }
 
 if dSPM:
     aves_dir = '/brainstudio/MEG/genz/genz_proc/active/twa_hp/dSPM_ave/%s%s' % (vis_or_aud, tag)
@@ -36,19 +36,22 @@ else:
 
 # stcs = ['both_9_SPN_faces_correct_signed']
 
-stcs = [s for s in os.listdir(aves_dir) if '-lh' in s and 'both' in s]
+stcs = [s[0:-7] for s in os.listdir(aves_dir) if '-lh' in s]
+stcs.sort()
 
 # read in the stc and plot it
 
 for stc in stcs:
+    print('Working on the movie for stc %s' % stc)
+    
     stc_plot = mne.read_source_estimate(op.join(aves_dir, '%s' % stc))
 
     plot = stc_plot.plot(subject='fsaverage', surface='inflated', hemi='split', colormap='cool', views=['lat', 'med'],
-                         size=800, clim=clim, title='method=%s 98+ percent peak' % method)
+                         size=800, clim=clim, title='method=%s percent scale' % method)
 
     # save the movie of the difference plot
 
-    save_name = op.join(movie_path, '%s.mov' % stc)
+    save_name = op.join(movie_path, '%s_percent.mov' % stc)
 
     plot.save_movie(fname=save_name, time_dilation=24, framerate=20, interpolation='linear')
 

@@ -6,14 +6,19 @@ GenZ analysis script for feedback related-negtivity FRN analysis.
 #  max(self.selection) + 1))]
 #ValueError: max() arg is an empty sequence
 
+import os
+import os.path as op
 import mnefun
 import numpy as np
-from score import (vis_names, vis_numbers)
+from genz_score import (vis_names, vis_numbers)
+
+raw_dir = '/brainstudio/MEG/genz/genz_proc/active/twa_hp/'
+subjs = [x for x in os.listdir(raw_dir) if op.isdir('%s%s' % (raw_dir, x)) and 'genz' in x]
 
 params = mnefun.Params(tmin=-0.2, tmax=0.8, t_adjust=0, decim=4, lp_cut=80,
                        bmin=-0.2, bmax=0.0)
-params.work_dir = '/brainstudio/MEG/genz/genz_proc/active'
-params.subjects = ['genz324_13a', 'genz428_15a']
+params.work_dir = '/brainstudio/MEG/genz/genz_proc/active/twa_hp/'
+params.subjects = subjs 
 params.subject_indices = np.arange(len(params.subjects))
 # params.subject_indices = np.setdiff1d(np.arange(len(params.subjects)), [4,6,7])
 params.run_names = [

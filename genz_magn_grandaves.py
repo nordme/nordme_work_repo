@@ -12,7 +12,7 @@ import numpy as np
 
 signed = False
 
-method = 'dSPM'
+method = 'eLORETA'
 
 skip_visual = False
 
@@ -33,67 +33,13 @@ anat_dir = '/brainstudio/MEG/genz/anatomy/'
 subjects = [x for x in os.listdir(raw_dir) if op.isdir('%s%s' % (raw_dir, x)) and 'genz' in x]
 subjects.sort()
 
+blocks = [ 'a','f', 'e', 't']
+conditions = ['l', 't']
 
-codes = ['al01',
-         'al02',
-         'al03',
-         'fl01',
-         'fl02',
-         'fl03',
-         'el01',
-         'el02',
-         'el03',
-         'tl01',
-         'tl02',
-         'tl03',
-         'ft01',
-         'ft02',
-         'ft03',
-         'et01',
-         'et02',
-         'et03',
-         'tt01',
-         'tt02',
-         'tt03',
-         'ft04',
-         'ft05',
-         'ft06',
-         'et04',
-         'et05',
-         'et06',
-         'tt04',
-         'tt05',
-         'tt06',
-         'ft07',
-         'ft08',
-         'ft09',
-         'et07',
-         'et08',
-         'et09',
-         'tt07',
-         'tt08',
-         'tt09',
-         'ft10',
-         'ft11',
-         'ft12',
-         'et10',
-         'et11',
-         'et12',
-         'tt10',
-         'tt11',
-         'tt12',
-         'at01',
-         'at02',
-         'at03',
-         'at04',
-         'at05',
-         'at06',
-         'at07',
-         'at08',
-         'at09',
-         'at10',
-         'at11',
-         'at12']
+codes = ['%s%s%02d' % (block, condition, syllable) 
+                    for condition in conditions                
+                    for block in blocks                    
+                    for syllable in (range(1,13) if condition == 't' else range(1,4))]
 
 ages = ['all', '9', '11', '13', '15', '17']
 
