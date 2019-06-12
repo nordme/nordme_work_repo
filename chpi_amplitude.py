@@ -353,5 +353,7 @@ def print_snr(raw, win_length, n_harmonics=None, show=True,
     # print snr values per coil per file
     print('SNR for gradiometers:')
     print('Coil 1: %d; \n Coil 2: %d \n Coil 3: %d \n Coil 4: %d \n Coil 5: %d' % (snr1, snr2, snr3, snr4, snr5))
+    print('Mean residual variance: %s' % resid_vars[pick_grad_, ind].mean())
 
     return snr_means
+

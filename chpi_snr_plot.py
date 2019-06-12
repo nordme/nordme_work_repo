@@ -18,7 +18,7 @@ fnames = []
 
 # create the set of file names
 
-coils = ['one_back', 'two_back', 'three_back', 'four_back', 'five_back', 'line', 'square']
+coils = ['one_back', 'two_back', 'three_back', 'four_back', 'five_back', 'line', 'square', 'ms_on', 'ms_off']
 heights = ['d0', 'd1', 'd2', 'd3', 'd4', 'd5']
 samples = ['1000_330', '2000_330', '2000_660']
 
@@ -31,7 +31,7 @@ for product in products:
 
 # choose what you want to plot
 
-graph_snr = False
+graph_snr = True
 
 graph_amplitude = False
 
@@ -39,13 +39,15 @@ graph_distances = False
 
 print_amplitudes = False
 
-print_SNR = True
+print_SNR = False
 
 # create the graphs
 
 # fnames = ['/home/nordme/data/cHPI_test/Mar_4/low_int_2_d0_1000_330_raw.fif']
 for file in fnames:
-    if 'one' in file:
+
+    if 'ms_on_d0_1000_330' in file:
+
         f_path = op.join(raw_dir, file)
         save_path = op.join(save_dir, file)
         raw = mne.io.read_raw_fif(f_path, allow_maxshield=True)
@@ -71,10 +73,12 @@ for file in fnames:
             fig2.savefig(op.join(save_path[:-4] + 'coil_dist.png'))
             plt.close()
 
+        # generate lists of mean power values for each coil
         if print_amplitudes:
             print('Amplitudes for %s' % file)
             print(print_chpi_amplitude(raw, win_length=1, n_harmonics=None, fname=file))
 
+        # generate lists of SNR values for each coil
         if print_SNR:
             print('Mean SNR by coil for file %s' % file)
             print(print_snr(raw, win_length=1, n_harmonics=None, fname=file))

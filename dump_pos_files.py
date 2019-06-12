@@ -7,15 +7,15 @@ import fnmatch as fn
 import numpy as np
 
 
-target_dir = '/brainstudio/MEG/genz/genz_proc/active/fix/'
-raw_dir = '/brainstudio/MEG/genz/'
+# target_dir = '/brainstudio/MEG/genz/genz_proc/active/fix/'
+# raw_dir = '/brainstudio/MEG/genz/'
 # target_dir = '/home/nordme/data/genz/genz_active/fix/'
-
+target_dir = '/home/nordme/data/prek/twa_hp/'
 
 
 # subjs = [d for d in os.listdir(raw_dir) if 'genz' in d]
 
-active_subjs = [d for d in os.listdir(target_dir) if 'genz' in d]
+active_subjs = [d for d in os.listdir(target_dir) if 'prek' in d]
 # subjs.sort()
 active_subjs.sort()
 print(active_subjs)
