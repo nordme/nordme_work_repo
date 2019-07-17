@@ -18,9 +18,8 @@ import numpy as np
 
 stc_dir = '/brainstudio/MEG/genz/genz_proc/active/twa_hp/dSPM_ave/auditory'
 
-stcs = [s[0:-7] for s in os.listdir(stc_dir) if '-lh' in s and 'both' in s]
+stcs = [s[0:-7] for s in os.listdir(stc_dir) if '-lh' in s and 'both' in s and 'al01' in s]
 stcs.sort()
-
 
 peak_amplitudes= []
 percentiles = []

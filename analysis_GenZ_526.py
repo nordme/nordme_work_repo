@@ -18,8 +18,9 @@ params = mnefun.Params(tmin=-0.1, tmax=0.75, t_adjust=0, n_jobs=6,
                        lp_trans='auto', bem_type='inner_skull')
 
 
-params.subjects = ['genz526_17a']
-params.work_dir = '/home/nordme/data/genz/genz_active/'
+# params.subjects = ['genz526_17a']
+params.work_dir = '/home/nordme/data/genz_active/'
+params.work_dir ='/brainstudio/MEG/genz/genz_proc/active/fix/'
 
 # params.work_dir = '/brainstudio/MEG/genz/genz_proc/active/'
 
@@ -31,13 +32,13 @@ params.subject_run_indices = None
 params.subjects_dir = op.join('/brainstudio', 'MEG', 'genz', 'anatomy')
 params.score = score
 params.run_names = [
-    '%s_emojis_learn_01',
-    '%s_thumbs_learn_01',
-    '%s_faces_learn_01',
-    '%s_emojis_test_01',
-    '%s_faces_test_01',
-    '%s_thumbs_test_01',
-    '%s_rest_01'
+    '%s_emojis_learn_01_otp',
+    '%s_thumbs_learn_01_otp',
+    '%s_faces_learn_01_otp',
+    '%s_emojis_test_01_otp',
+    '%s_faces_test_01_otp',
+    '%s_thumbs_test_01_otp',
+    # '%s_rest_01_otp'
 ]
 # params.acq_ssh = 'maggie@minea.ilabs.uw.edu'
 params.acq_dir = ['/brainstudio/MEG/genz']
@@ -155,7 +156,7 @@ mnefun.do_processing(
     fetch_raw=False,  # Fetch raw recording files from acq machine
     do_score=False,  # do scoring
     push_raw=False,  # Push raw files and SSS script to SSS workstation
-    do_sss=False, # Run SSS remotely
+    do_sss=True, # Run SSS remotely
     fetch_sss=False,  # Fetch SSSed files
     do_ch_fix=False,  # Fix channel ordering
     gen_ssp=False,  # Generate SSP vectors
@@ -164,6 +165,6 @@ mnefun.do_processing(
     gen_covs=False,  # Generate covariances
     gen_fwd=False,  # Generate forward solutions (and source space if needed)
     gen_inv=False,  # Generate inverses
-    gen_report=True,
+    gen_report=False,
     print_status=True,
 )

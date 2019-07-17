@@ -3,6 +3,8 @@
 GenZ pilot analysis script.
 
 """
+# for genz 232: use 'EOG062' as the ECG channel; use ['ECG063', 'EOG061'] as the EOG channels
+
 import os
 import os.path as op
 import mnefun
@@ -29,8 +31,8 @@ params.work_dir = '/home/nordme/data/genz_active/'
 
 # params.work_dir = '/brainstudio/MEG/genz/genz_proc/active/twa_hp/'
 
-# params.subject_indices = [0]
-params.subject_indices = np.setdiff1d(np.arange(len(params.subjects)), [])
+params.subject_indices = [0]
+#params.subject_indices = np.setdiff1d(np.arange(len(params.subjects)), [])
 params.dates = [(2014, 10, 14)] * len(params.subjects)
 params.structurals = params.subjects
 params.subject_run_indices = None
@@ -145,15 +147,6 @@ params.report_params.update(  # add a couple of nice diagnostic plots
 )
 default = True
 
-# add exceptions for subjects with strange stuff
-
-for subject in params.subjects:
-    if subject == 'genz232_11a':
-        params.ecg_channel = 'EOG062'
-        params.eog_channel = ['ECG063', 'EOG061']
-    else:
-        params.ecg_channel = None
-        params.eog_channel = None
 
 mnefun.do_processing(
     params,

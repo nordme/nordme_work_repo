@@ -4,24 +4,16 @@
 import os
 import os.path as op
 import mne
-import mnefun
 import numpy as np
 from mnefun._paths import (get_raw_fnames, get_event_fnames)
+import expyfun
+
 
 
 # words = 1
 # faces = 2
 # cars = 3 (channels 1 and 2)
 # alien = 4
-
-
-prek_in_names = ['words', 'faces', 'cars', 'alien', 'presses']
-
-prek_in_numbers = [1, 2, 3, 4, 5]
-
-prek_out_names = [prek_in_names]
-
-prek_out_numbers = [prek_in_numbers]
 
 
 def prek_score(p, subjects):
@@ -60,12 +52,62 @@ def prek_score(p, subjects):
 
             # return all events
             events = np.concatenate((words, cars, faces, alien, presses))
-            mne.write_events(event_fnames[fi], events)
+            events[:, 2] *= 10
+            # mne.write_events(event_fnames[fi], events)
+
+            # write the behavioral data
+            hits = []
+            misses = []
+            correct_rejections = 0
+            images = np.concatenate((words, cars, faces))
+            all_events = mne.find_events(raw, shortest_event=2)
+
+            for event in all_events:
+                if event[0] in presses:
+                    event[2] = 5
+            all_events[:, 2] *= 10
+
+            for i, event in enumerate(all_events):
+                if np.in1d(event[0], alien): # for each alien image
+                    if event[0] == all_events[-1, 0]:  # if the alien image is the very last event, its a miss
+                        print('Miss', event, i)
+                        misses.append(event)
+                    elif all_events[i+1][2] != 50:  # if the next event isn't a button press, it's a miss.
+                        print('Miss', event, i)
+                        misses.append(event)
+                    else:   # add the next event to hits if it's a button press
+                        if all_events[i+1][2] == 50:
+                            hits.append(all_events[i + 1])
+                            print('hit: %s' % all_events[i+1], i+1)
+                        else:
+                            continue
+
+                if np.in1d(event[0], images):  # for each regular image
+                    try:
+                        if all_events[i+1][2] != 50:   # if the kid doesn't press a button next
+                            correct_rejections += 1           # then it's a correct rejection
+                    except IndexError:
+                        correct_rejections += 1   # if an image is the last event, then there's no button press following
+
+            extras = [x for x in all_events if x[2] == 50 and not np.in1d(x[0], hits)]
+
+            hits = len(hits)
+            misses = len(misses)
+            false_alarms = len(extras)
+
+            d_prime = expyfun.analyze.dprime([hits, misses, false_alarms, correct_rejections])
+
+            with open(op.join(p.work_dir, subject, '%s_behavioral.txt' % subject), 'wb') as fid:
+                print('writing the behavioral csv at %s' % op.join(subject, '%s_behavioral.txt' % subject))
+                fid.write('total_presses, hits, misses, false_alarms, correct_rejections, d_prime: \n'.encode())
+                fid.write((('%s, %s, %s, %s, %s, %s' % (len(presses), hits, misses, false_alarms, correct_rejections, d_prime)).encode()))
+
+            with open(op.join(p.work_dir,'pre_behavioral.txt'), 'ab') as fid:
+                print('Adding a line to the global behavioral file.')
+                fid.write((('%s, %s, %s, %s, %s, %s, %s \n' % (subject, len(presses), hits, misses, false_alarms, correct_rejections, d_prime)).encode()))
+
 
 
 def pick_cov_events_prek(events):
     events = [x for x in events if x[2] != 5] # we only want visual events, not button presses
     return events
-
-
-

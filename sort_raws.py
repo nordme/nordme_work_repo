@@ -3,53 +3,82 @@
 import os
 import os.path as op
 import shutil
-import fnmatch as fn
 import numpy as np
 
 
-target_dir = '/brainstudio/MEG/genz/genz_proc/active/twa_hp/'
+target_dir = '/home/nordme/data/genz_active/'
 raw_dir = '/brainstudio/MEG/genz/genz_proc/active/'
 trans_dir = '/brainstudio/MEG/genz/genz_proc/active/trans/'
 
-
+do_annots = True
+do_raws = False
 
 # Get all the subject directories from active and the raw / trans dirs
 
-subjs = [d for d in os.listdir(raw_dir) if 'genz' in d]
-subjs.remove('genz_score.py')
+subjs = [d for d in os.listdir(raw_dir) if op.isdir(op.join(raw_dir, d)) and 'genz' in d]
 subjs.sort()
 
 raw_list = []
 prebads = []
 
-for subject in subjs:
-    raw = [s for s in os.listdir(raw_dir + subject) if 'raw_fif' in s]
-    # print(sub)
-    for s in raw:
-        files = os.listdir(op.join(raw_dir + subject + '/%s' % s))
+if do_raws:
+    for subject in subjs:
+        target_path = op.join(target_dir, subject)
+        if op.isdir(target_path):
+            print('Subject %s has a subject directory.' % subject)
+        else:
+            os.mkdir(target_path)
+
+        raw_path = op.join(target_dir, subject, 'raw_fif')
+        if op.isdir(raw_path):
+            print('Subject %s has a raw directory.' % subject)
+        else:
+            os.mkdir(raw_path)
+
+        files = os.listdir(op.join(raw_dir, subject, 'raw_fif'))
         for file in files:
+            print('Working on files for subject %s.' % subject)
             if 'raw.fif' in file:
-                raw_list.append((subject, s, file))
+                raw_source = op.join(raw_dir, subject, 'raw_fif', file)
+                raw_dest = op.join(target_dir, subject, 'raw_fif', file)
+                shutil.copyfile(raw_source, raw_dest)
+                print('Added raw file %s to subject %s' % (file, subject))
             elif 'prebad' in file:
-                prebads.append((subject, s, file))
+                pb_source = op.join(raw_dir, subject, 'raw_fif', file)
+                pb_dest = op.join(target_dir, subject, 'raw_fif', file)
+                shutil.copyfile(pb_source, pb_dest)
+                print('Added prebad file to subject %s' % subject)
+            elif 'erm' in file:
+                erm_source = op.join(raw_dir, subject, 'raw_fif', file)
+                erm_dest = op.join(target_dir, subject, 'raw_fif', file)
+                shutil.copyfile(erm_source, erm_dest)
+                print('Added erm to subject %s' % subject)
             else:
                 pass
 
 
-# See if resting state and erm files exist in the target directory; if non-existent, add
-    
-for s, d, f in prebads:
-    pb_source = op.join(raw_dir + s + '/raw_fif/' + f)
-    # print(erm_source)
-    pb_dest = op.join(target_dir + s + '/raw_fif/' + f)
-    raw_fif = op.join(target_dir + s + '/raw_fif/')
-    # print(erm_dest)
-    if op.exists(raw_fif):
-        print('Ready.')
-    else:    
-        os.makedirs(raw_fif)
-    if op.exists(pb_dest):
-        print('%s has prebad file %s' % (s, f))
-    else:    
-       shutil.copy(pb_source, pb_dest)
-       print('added prebad file to subject %s' % s)
+
+# add in custom annotations
+if do_annots:
+    for subject in subjs:
+        target_path = op.join(target_dir, subject)
+        if op.isdir(target_path):
+            print('Subject %s has a subject directory.' % subject)
+        else:
+            os.mkdir(target_path)
+
+        raw_path = op.join(target_dir, subject, 'raw_fif')
+        if op.isdir(raw_path):
+            print('Subject %s has a raw directory.' % subject)
+        else:
+            os.mkdir(raw_path)
+
+        files = os.listdir(op.join(raw_dir, subject, 'raw_fif'))
+        for file in files:
+            if 'custom-annot' in file:
+                an_source = op.join(raw_dir, subject, 'raw_fif', file)
+                an_dest = op.join(target_dir, subject, 'raw_fif', file)
+                shutil.copyfile(an_source, an_dest)
+                print('Added custom annotations file %s to subject %s' % (file, subject))
+            else:
+                pass

@@ -6,25 +6,25 @@ import os.path as op
 import mne
 import mnefun
 import numpy as np
-from prek_score import (prek_score, prek_in_names, prek_in_numbers, prek_out_names, prek_out_numbers, pick_cov_events_prek)
+from prek_score_ep import (prek_score, prek_in_names, prek_in_numbers, prek_out_names, prek_out_numbers, pick_cov_events_prek)
 
-raw_dir = '/home/nordme/data/prek/twa_hp/'
+raw_dir = '/home/nordme/data/prek/'
 
 # subjects
-
-subjects = [x for x in os.listdir(raw_dir) if op.isdir(op.join(raw_dir, x)) and 'prek' in x]
+skip = ['prek_1259', 'prek_1451']
+subjects = [x for x in os.listdir('/storage/prek/') if op.isdir(x) and 'prek' in x and not np.in1d(x, skip)]
 
 
 # INITIALIZE
 
-prek_params = mnefun.Params(tmin=-0.05, tmax=1.0, n_jobs=6,
-                       decim=2, n_jobs_mkl=1, proj_sfreq=250,
-                       n_jobs_fir=6, n_jobs_resample=6,
-                       filter_length='auto', epochs_type='fif', lp_cut=100.,
-                       bmin=-0.05, plot_raw=False)
+prek_params = mnefun.Params(tmin=-0.05, tmax=1.0, n_jobs=18,
+                       decim=2, n_jobs_mkl=18, proj_sfreq=250,
+                       n_jobs_fir=18, n_jobs_resample=18,
+                       filter_length='5s', epochs_type='fif', lp_cut=80.,
+                       bmin=-0.1, plot_raw=False, bem_type='5120')
 
 # GENERAL
-prek_params.work_dir = '/home/nordme/data/prek/twa_hp/'
+prek_params.work_dir = '/home/nordme/data/prek/'
 prek_params.subjects = subjects
 prek_params.run_names = ['%s_erp_pre',] # this parameter allows you to have multiple files per subject; generally condition name is the variable
 prek_params.subject_indices = np.arange(len(subjects))
@@ -124,8 +124,8 @@ prek_params.structurals = prek_params.subjects
 
 # INVERSES
 
-prek_params.inv_names = None  # this parameter lets you separate inverse solutions (i.e. between conditions)
-prek_params.inv_runs = None  # how many files per inverse solution
+prek_params.inv_names = []  # this parameter lets you separate inverse solutions (i.e. between conditions)
+prek_params.inv_runs = []  # how many files per inverse solution
 
 
 # REPORTS
@@ -146,10 +146,10 @@ prek_params.report_params = dict(
 mnefun.do_processing(
     prek_params,
     do_score = True,
-    do_sss = True,
-    gen_ssp = True,
-    apply_ssp = True,
-    write_epochs = True,
+    do_sss = False,
+    gen_ssp = False,
+    apply_ssp = False,
+    write_epochs = False,
     gen_covs = False,  # Generate covariances
     gen_fwd = False,  # Generate forward solutions (and source space if needed)
     gen_inv = False,  # Generate inverses

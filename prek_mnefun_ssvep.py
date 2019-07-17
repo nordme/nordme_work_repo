@@ -5,47 +5,49 @@ Created on Fri May 17 7:11:32 2019
 
 @author: mdclarke
 
-mnefun processing script for PreK Project
+mnefun processing script for PreK SSVEP
 
 Notes:
-1) run preprocessing (up to gen_covs)
-2) run prek_setup_source.py
-3) coregistration (mne coreg)
-4) run fwd + inv (this script)
-
-1 = words (N=30)
-2 = faces (N=30)
-3 = cars (N=30)
-4 = aliens (N=10) + 10 button responses
+1) run preprocessing (tSSS and SSP only)
+2) no scoring / epoching
+3) will still need twa and fixed hp
 
 """
+# prek 1714: use pskt_02, pskt_03
+# prek_1936: use pskt_01, pskt_03
+# prek_1964: use pskt_01, pskt_03
+
 import mnefun
 import numpy as np
 import os
 import os.path as op
-from prek_score import prek_score
 
-params = mnefun.Params(tmin=-0.1, tmax=1, t_adjust=0.06, n_jobs=18,
+dir = '/storage/prek'
+skip = ['prek_1259', 'prek_1451', 'prek_1714', 'prek_1936', 'prek_1964', 'prek_1319', 'prek_1391', 'prek_1812']
+#subjects = [x for x in os.listdir(dir) if op.isdir(op.join(dir, x))
+#           if 'prek' in x and not np.in1d(x, skip)
+#           and not op.exists(op.join(dir, x, 'sss_pca_fif', '%s_pskt_01_pre_allclean_fil80_raw_sss.fif' % x))]
+# subjects = ['prek_1936', 'prek_1964']
+subjects = ['prek_1940', 'prek_1798', 'prek_1790', 'prek_1750']
+subjects.sort()
+print(subjects)
+
+params = mnefun.Params(tmin=-0.1, tmax=1, n_jobs=18,
                        proj_sfreq=200, n_jobs_fir=18,
                        filter_length='5s', lp_cut=80., 
                        n_jobs_resample=18,
-                       bmin=-0.1, bem_type='5120')
+                       bmin=-0.1, bem_type='5120', )
 #1451 rename
-skip = ['prek_1259', 'prek_1451']
-subjects = [x for x in os.listdir('/storage/prek/') if op.isdir(op.join('/storage/prek', x)) and 'prek' in x and not np.in1d(x, skip)]
-# subjects = ['prek_1756', 'prek_1790', 'prek_1505', 'prek_1750', 'prek_1798', 'prek_1940']
-subjects.sort()
 
-structurals = ['PREK_%s' % x[5:9] for x in subjects]
-
-params.work_dir = '/storage/prek'
 params.subjects = subjects
-params.structurals = structurals
+params.work_dir = '/storage/prek'
+params.structurals = params.subjects
 params.dates = [(2013, 0, 00)] * len(params.subjects)
 # define which subjects to run
 params.subject_indices = np.arange(len(params.subjects))
-# params.subject_indices = np.setdiff1d(np.arange(len(params.subjects)), np.arange(41))
-# Aquistion params 
+# params.subject_indices = np.setdiff1d(np.arange(len(params.subjects)), np.arange(11))
+# params.subject_indices = [7]
+# Acquisition params
 params.acq_ssh = 'nordme@kasga.ilabs.uw.edu'
 params.acq_dir = '/brainstudio/prek/'
 params.sws_ssh = 'nordme@kasga.ilabs.uw.edu'
@@ -69,8 +71,10 @@ params.flat = dict(grad=1e-13, mag=1e-15)
 params.auto_bad_flat = None
 params.auto_bad_meg_thresh = 10
 # naming
-params.run_names = ['%s_erp_pre']
-params.get_projs_from = np.arange(1)
+# params.run_names = ['%s_pskt_02_pre', '%s_pskt_03_pre']
+# params.run_names = ['%s_pskt_01_pre', '%s_pskt_03_pre']
+params.run_names = ['%s_pskt_01_pre', '%s_pskt_02_pre']
+params.get_projs_from = np.arange(2)
 params.inv_names = ['%s']
 params.inv_runs = [np.arange(1)]
 params.runs_empty = []
@@ -81,25 +85,11 @@ params.proj_nums = [[1, 1, 0],  # ECG: grad/mag/eeg
 params.cov_method = 'empirical'
 params.bem_type = '5120'
 params.compute_rank = True
-# Epoching
-params.score = prek_score
-params.in_names = ['words', 'faces', 'cars', 'aliens']
-params.in_numbers = [10, 20, 30, 40]
-params.analyses = ['All',
-                   'Conditions']
-params.out_names = [['All'],
-                    ['words', 'faces', 'cars', 'aliens']]
-params.out_numbers = [[10, 10, 10, 10],  # Combine all trials
-                      [10, 20, 30, 40],  # Separate trials
-    ]
-params.must_match = [
-    [], # trials to match
-    [],
-    ]
+
+# No epoching for ssvep
 
 params.report_params.update(  # add plots
     bem=True, 
-    good_hpi_count=True,
     sensor=[
         dict(analysis='Conditions', name='words', times='peaks'),
         dict(analysis='Conditions', name='faces', times='peaks'),
@@ -133,17 +123,18 @@ params.report_params.update(  # add plots
     psd=False,
 )
 
+
 mnefun.do_processing(
     params,
     fetch_raw=False,
-    do_sss=False, # do tSSS
+    do_sss=True, # do tSSS
     do_score=False,  # do scoring
-    gen_ssp=False, # generate ssps
-    apply_ssp=False, # apply ssps
+    gen_ssp=True, # generate ssps
+    apply_ssp=True, # apply ssps
     write_epochs=False, # epoching & filtering
-    gen_covs=False, # make covariance
+    gen_covs=False, # make covariance 
     gen_fwd=False, # generate fwd model
-    gen_inv=True, # general inverse
+    gen_inv=False, # general inverse
     gen_report=False, #print report
     print_status=True # show status
 )

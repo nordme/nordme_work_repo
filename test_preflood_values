@@ -1,0 +1,49 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Tue Jun 18 14:49:52 2019
+
+@author: nordme
+"""
+
+import os 
+import os.path as op
+import shutil
+import mne
+
+subjects_dir = ''
+
+subjects = [x for x in os.listdir(subjects_dir) if op.isdir(x) and 'prek' in x]
+# choose a directory of subjects
+
+test_values = [10, 11, 12, 13, 14]
+
+
+for value in test_values:
+    # make the appropriate directories
+     if not op.exists(op.join(subjects_dir, 'preflood_%s' % value)):
+         os.mkdir(op.join(subjects_dir, 'preflood_%s' % value))
+    for subject in subjects:
+        # run the watershed 
+        preflood = run_subprocess(['mne', 'watershed_bem', '--subject', subject, '--preflood', value,
+                        '--overwrite'])
+    
+     # move all the subjects just created into the appropriate preflood directory
+     all_dirs = [x for x in os.listdir(subjects_dir) if op.isdir(x) and 'prek' in x]
+     for d in all_dirs:
+         source = op.join(subjects_dir, d,  )
+         dest = ''
+         shutil.move(source, dest)
+
+
+
+
+watershed preflood = 10
+
+watershed preflood = 11
+
+watershed preflood = 12
+
+watershed preflood = 13
+
+watershed preflood = 14

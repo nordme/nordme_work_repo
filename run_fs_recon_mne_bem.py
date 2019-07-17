@@ -20,14 +20,15 @@ import fnmatch
 
 # subjects_dir = get_subjects_dir(None, raise_error=True)
 
-subjects_dir = '/brainstudio/MEG/genz/anatomy'
+subjects_dir = '/home/nordme/data/genz_anatomy/redo'
 environ = copy.copy(os.environ)
 environ['SUBJECTS_DIR'] = subjects_dir
 run_recon = False
 do_rms = False
 do_flash = False
 n_jobs = 18
-subjects_dir = '/brainstudio/MEG/genz/anatomy'
+# subjects_dir = '/brainstudio/MEG/genz/anatomy'
+subjects_dir = '/home/nordme/data/genz_anatomy/redo'
 
 
 def find_files(pattern, path):
@@ -40,11 +41,7 @@ def find_files(pattern, path):
    return result
 
 
-
-subjects = ['316_13a'
-            ]
-
-
+subjects = ['106_9a', '119_9a', '121_9a', '122_9a', '301_13a', '330_13a']
 
 
 for subject in subjects:
@@ -176,4 +173,4 @@ for subject in subjects:
     # f.savefig(op.join(subjects_dir, subject, '%s_bem.png' % subject), dpi=200,
     #           format='png')
     # plt.close(plt.gcf())
-    print('    Time: %s mns' % round((time.time() - t-1) / 60., 2))
+    print('    Time: %s mns' % round((time.time() - t0-1) / 60., 2))
