@@ -22,13 +22,14 @@ import numpy as np
 import os
 import os.path as op
 
-dir = '/storage/prek'
-skip = ['prek_1259', 'prek_1451', 'prek_1714', 'prek_1936', 'prek_1964', 'prek_1319', 'prek_1391', 'prek_1812']
-#subjects = [x for x in os.listdir(dir) if op.isdir(op.join(dir, x))
-#           if 'prek' in x and not np.in1d(x, skip)
-#           and not op.exists(op.join(dir, x, 'sss_pca_fif', '%s_pskt_01_pre_allclean_fil80_raw_sss.fif' % x))]
+dir = '/home/nordme/data/prek/fixed_hp/'
+skip = ['prek_1259', 'prek_1451', 'prek_1714', 'prek_1936', 'prek_1964']
+subjects = [x for x in os.listdir(dir) if op.isdir(op.join(dir, x))
+            if 'prek' in x and not np.in1d(x, skip)]
+ # and not op.exists(op.join(dir, x, 'sss_pca_fif', '%s_pskt_01_pre_allclean_fil80_raw_sss.fif' % x))
 # subjects = ['prek_1936', 'prek_1964']
-subjects = ['prek_1940', 'prek_1798', 'prek_1790', 'prek_1750']
+# subjects = ['prek_1940', 'prek_1798', 'prek_1790', 'prek_1750']
+
 subjects.sort()
 print(subjects)
 
@@ -40,7 +41,7 @@ params = mnefun.Params(tmin=-0.1, tmax=1, n_jobs=18,
 #1451 rename
 
 params.subjects = subjects
-params.work_dir = '/storage/prek'
+params.work_dir = dir
 params.structurals = params.subjects
 params.dates = [(2013, 0, 00)] * len(params.subjects)
 # define which subjects to run
@@ -58,7 +59,7 @@ params.sss_regularize = 'in'
 params.tsss_dur = 4. # tSSS duration
 params.int_order = 8
 params.st_correlation = .98
-params.trans_to='twa' # time weighted average head position (change this to fixed pos for group analysis)
+params.trans_to = (0., 0., 0.04) # time weighted average head position (change this to fixed pos for group analysis)
 params.coil_t_window = 'auto'
 params.movecomp='inter'
 # remove segments with < 3 good coils for at least 100 ms
@@ -127,9 +128,9 @@ params.report_params.update(  # add plots
 mnefun.do_processing(
     params,
     fetch_raw=False,
-    do_sss=True, # do tSSS
+    do_sss=False, # do tSSS
     do_score=False,  # do scoring
-    gen_ssp=True, # generate ssps
+    gen_ssp=False, # generate ssps
     apply_ssp=True, # apply ssps
     write_epochs=False, # epoching & filtering
     gen_covs=False, # make covariance 
