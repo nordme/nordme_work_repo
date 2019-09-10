@@ -15,8 +15,8 @@ from genz_score import (score, aud_in_names, aud_in_numbers,
 #raw_dir = '/brainstudio/MEG/genz/genz_proc/active/twa_hp/'
 raw_dir = '/home/nordme/data/genz_active/'
 
-subjs = [x for x in os.listdir(raw_dir) if op.isdir('%s%s' % (raw_dir, x)) and 'genz516' in x]
-
+subjs = [x for x in os.listdir(raw_dir) if op.isdir('%s%s' % (raw_dir, x)) and 'genz' in x]
+subjs.sort()
 
 params = mnefun.Params(tmin=-0.1, tmax=0.75, t_adjust=0, n_jobs=12,
                        decim=4, n_jobs_mkl=1, proj_sfreq=200,
@@ -31,7 +31,7 @@ params.work_dir = '/home/nordme/data/genz_active/'
 
 # params.work_dir = '/brainstudio/MEG/genz/genz_proc/active/twa_hp/'
 
-params.subject_indices = [0]
+params.subject_indices = np.arange(len(params.subjects))
 #params.subject_indices = np.setdiff1d(np.arange(len(params.subjects)), [])
 params.dates = [(2014, 10, 14)] * len(params.subjects)
 params.structurals = params.subjects
@@ -153,15 +153,15 @@ mnefun.do_processing(
     fetch_raw=False,  # Fetch raw recording files from acq machine
     do_score=True,  # do scoring
     push_raw=False,  # Push raw files and SSS script to SSS workstation
-    do_sss=True, # Run SSS remotely
-    fetch_sss=True,  # Fetch SSSed files
+    do_sss=False, # Run SSS remotely
+    fetch_sss=False,  # Fetch SSSed files
     do_ch_fix=False,  # Fix channel ordering
-    gen_ssp=True,  # Generate SSP vectors
-    apply_ssp=True,  # Apply SSP vectors and filtering
-    write_epochs=True,  # Write epochs to disk
+    gen_ssp=False,  # Generate SSP vectors
+    apply_ssp=False,  # Apply SSP vectors and filtering
+    write_epochs=False,  # Write epochs to disk
     gen_covs=False,  # Generate covariances
     gen_fwd=False,  # Generate forward solutions (and source space if needed)
     gen_inv=False,  # Generate inverses
     gen_report=False,
-    print_status=True,
+    print_status=False,
 )

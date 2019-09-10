@@ -27,6 +27,7 @@ import numpy as np
 
 import mne
 from mnefun._paths import get_raw_fnames, get_event_fnames
+import expyfun
 from expyfun.io import read_tab, read_tab_raw  # noqa, analysis:ignore
 
 subjects = [
@@ -128,7 +129,7 @@ def score(p, subjects, run_indices):
         run_names = [r.split('_')[0] for r in run_names]
         run_trigs = np.loadtxt(fname_check, int, skiprows=1)
         assert len(run_names) == len(run_trigs) == n_resp * 3
-        test_trigs.append(run_trigs)
+        test_trigs.append(run_trigs)   # test_trigs always has language 1, language 2, language 3 order
         # 1-2-3: exact syllable sequence presented during learning block.
         # Each 1-2-3 trigger is a 'pseudoword' that should have been learned
         # during learning block. Let's verify this:
@@ -154,6 +155,21 @@ def score(p, subjects, run_indices):
         csv = list()
         beh_print = list()
         blocks_used = np.zeros(6, bool)
+
+        # read in the subject's condition to pair f / e/ t with l1 / l2 / l3 for behavioral scoring
+        hits = 0
+        misses = 0
+        false_alarms = 0
+        correct_rejections = 0
+        condition_list = []
+        with open(op.join(p.work_dir, 'genz_subject_condition.txt')) as search:
+            line = [line for line in search if subj[4:] in line.lower().rstrip()]
+            line = line[0].lower().rstrip()
+            for i in [-3, -2, -1]:  # the last three letters (condition letters) of the txt line
+                condition_list.append(
+                    [line[i], i + 4])  # the number is the language number paired with the block letter
+            print('Subject %s has the following pairing of languages and blocks: \n %s' %(subj, condition_list))
+
         for ri, raw_fname in enumerate(raw_fnames):
             raw = mne.io.read_raw_fif(raw_fname, allow_maxshield='yes')
             print('Scoring file %s' % raw_fname)
@@ -221,9 +237,10 @@ def score(p, subjects, run_indices):
                 assert np.in1d(aud_number, [1, 2, 3]).all()
             else:
                 assert kind_code == kind_codes['test']
-                idx = blocks[oi] - 4
+                idx = [x[1] for x in condition_list if x[0] == this_vis[0]]  # the idx is the l1 / l2 / l3 number
+                idx = idx[0] - 1
+#               idx = blocks[oi] - 4
                 aud_number = test_trigs[idx]
-                assert np.in1d(aud_number, np.arange(1, 13)).all()
                 # assert len(events_auditory) == len(aud_number)
                 # Assess behavioral performance
                 want_presses = want_resp[idx]
@@ -292,6 +309,18 @@ def score(p, subjects, run_indices):
                 csv.extend([[this_vis, w, g, w == g, r]
                             for w, g, r in
                             zip(want_presses, got_presses, got_rts)])
+
+                # determine value of variables for calculating dprime
+                for gp, wp in zip(got_presses, want_presses):
+                    if gp == wp == 1:
+                        hits += 1
+                    elif gp == wp == 2:
+                        correct_rejections += 1
+                    elif gp != wp and gp == 1:
+                        false_alarms += 1
+                    elif gp != wp and gp == 2:
+                        misses += 1
+
             events_auditory[:, 2] = (kind_code + vis_code + aud_number)
             assert np.in1d(events_auditory[:, 2], aud_numbers).all()
 
@@ -407,6 +436,16 @@ def score(p, subjects, run_indices):
             fid.write('vis,want,got,correct,rt\n'.encode())
             for row in csv:
                 fid.write(('%s,%d,%d,%d,%d\n' % tuple(row)).encode())
+
+        #### calculate dprime for Genz
+
+        d_prime = expyfun.analyze.dprime([hits, misses, false_alarms, correct_rejections])
+
+        with open(op.join(p.work_dir, 'genz_t1_behavioral.txt'), 'ab') as fid:
+            print('Adding a line to the Genz timepoint 1 global behavioral file.\n %s, %s, %s, %s, %s, %s \n' % (
+            subj, hits, misses, false_alarms, correct_rejections, d_prime))
+            fid.write((('%s, %s, %s, %s, %s, %s \n' % (
+            subj, hits, misses, false_alarms, correct_rejections, d_prime)).encode()))
 
 
 def pick_aud_cov_events(events):

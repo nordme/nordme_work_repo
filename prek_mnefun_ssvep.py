@@ -13,22 +13,22 @@ Notes:
 3) will still need twa and fixed hp
 
 """
+
+
+# pre_camp exceptions to run_names:
 # prek 1714: use pskt_02, pskt_03
 # prek_1936: use pskt_01, pskt_03
 # prek_1964: use pskt_01, pskt_03
 
 import mnefun
 import numpy as np
-import os
-import os.path as op
 
-dir = '/home/nordme/data/prek/fixed_hp/'
+
+dir = '/home/nordme/data/prek/post_camp/fixed_hp/'
 skip = ['prek_1259', 'prek_1451', 'prek_1714', 'prek_1936', 'prek_1964']
-subjects = [x for x in os.listdir(dir) if op.isdir(op.join(dir, x))
-            if 'prek' in x and not np.in1d(x, skip)]
- # and not op.exists(op.join(dir, x, 'sss_pca_fif', '%s_pskt_01_pre_allclean_fil80_raw_sss.fif' % x))
-# subjects = ['prek_1936', 'prek_1964']
-# subjects = ['prek_1940', 'prek_1798', 'prek_1790', 'prek_1750']
+#subjects = [x for x in os.listdir(dir) if op.isdir(op.join(dir, x)) and 'prek' in x and not np.in1d(x, skip)]
+subjects = ['prek_1936', 'prek_1964']
+# subjects = ['prek_1714']
 
 subjects.sort()
 print(subjects)
@@ -59,7 +59,7 @@ params.sss_regularize = 'in'
 params.tsss_dur = 4. # tSSS duration
 params.int_order = 8
 params.st_correlation = .98
-params.trans_to = (0., 0., 0.04) # time weighted average head position (change this to fixed pos for group analysis)
+params.trans_to = (0., 0., 0.04) # time weighted average or fixed head position (change this to fixed pos for sensor analysis)
 params.coil_t_window = 'auto'
 params.movecomp='inter'
 # remove segments with < 3 good coils for at least 100 ms
@@ -73,8 +73,8 @@ params.auto_bad_flat = None
 params.auto_bad_meg_thresh = 10
 # naming
 # params.run_names = ['%s_pskt_02_pre', '%s_pskt_03_pre']
-# params.run_names = ['%s_pskt_01_pre', '%s_pskt_03_pre']
-params.run_names = ['%s_pskt_01_pre', '%s_pskt_02_pre']
+params.run_names = ['%s_pskt_01_pre', '%s_pskt_03_pre']
+# params.run_names = ['%s_pskt_01_pre', '%s_pskt_02_pre']
 params.get_projs_from = np.arange(2)
 params.inv_names = ['%s']
 params.inv_runs = [np.arange(1)]
@@ -128,9 +128,9 @@ params.report_params.update(  # add plots
 mnefun.do_processing(
     params,
     fetch_raw=False,
-    do_sss=False, # do tSSS
+    do_sss=True, # do tSSS
     do_score=False,  # do scoring
-    gen_ssp=False, # generate ssps
+    gen_ssp=True, # generate ssps
     apply_ssp=True, # apply ssps
     write_epochs=False, # epoching & filtering
     gen_covs=False, # make covariance 

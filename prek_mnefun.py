@@ -25,20 +25,23 @@ import os
 import os.path as op
 from prek_score import prek_score
 
-params = mnefun.Params(tmin=-0.1, tmax=1, t_adjust=0.06, n_jobs=18,
+dir = '/home/nordme/data/prek/post_camp/twa_hp/'
+
+params = mnefun.Params(tmin=-0.1, tmax=1, t_adjust=-0.067, n_jobs=18,
                        proj_sfreq=200, n_jobs_fir=18,
                        filter_length='5s', lp_cut=80., 
                        n_jobs_resample=18,
                        bmin=-0.1, bem_type='5120')
 #1451 rename
 skip = ['prek_1259', 'prek_1451']
-subjects = [x for x in os.listdir('/storage/prek/') if op.isdir(op.join('/storage/prek', x)) and 'prek' in x and not np.in1d(x, skip)]
-# subjects = ['prek_1756', 'prek_1790', 'prek_1505', 'prek_1750', 'prek_1798', 'prek_1940']
+subjects = [x for x in os.listdir(dir) if op.isdir(op.join(dir, x)) and 'prek' in x and not np.in1d(x, skip)]
+# subjects = ['prek_1110']
 subjects.sort()
 
 structurals = ['PREK_%s' % x[5:9] for x in subjects]
 
-params.work_dir = '/storage/prek'
+params.score = prek_score
+params.work_dir = dir
 params.subjects = subjects
 params.structurals = structurals
 params.dates = [(2013, 0, 00)] * len(params.subjects)
@@ -69,7 +72,8 @@ params.flat = dict(grad=1e-13, mag=1e-15)
 params.auto_bad_flat = None
 params.auto_bad_meg_thresh = 10
 # naming
-params.run_names = ['%s_erp_pre']
+# params.run_names = ['%s_erp_pre']
+params.run_names = ['%s_erp_post']
 params.get_projs_from = np.arange(1)
 params.inv_names = ['%s']
 params.inv_runs = [np.arange(1)]
@@ -81,6 +85,7 @@ params.proj_nums = [[1, 1, 0],  # ECG: grad/mag/eeg
 params.cov_method = 'empirical'
 params.bem_type = '5120'
 params.compute_rank = True
+
 # Epoching
 params.score = prek_score
 params.in_names = ['words', 'faces', 'cars', 'aliens']
@@ -143,7 +148,7 @@ mnefun.do_processing(
     write_epochs=False, # epoching & filtering
     gen_covs=False, # make covariance
     gen_fwd=False, # generate fwd model
-    gen_inv=True, # general inverse
+    gen_inv=False, # general inverse
     gen_report=False, #print report
     print_status=True # show status
 )

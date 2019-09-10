@@ -13,7 +13,7 @@ vis_or_aud = 'visual' # 'visual' or 'auditory'
 
 signed = False
 
-dSPM = False
+dSPM = True
 
 if signed:
     tag = '/signed/'
@@ -36,7 +36,7 @@ else:
 
 # stcs = ['both_9_SPN_faces_correct_signed']
 
-stcs = [s[0:-7] for s in os.listdir(aves_dir) if '-lh' in s]
+stcs = [s[0:-7] for s in os.listdir(aves_dir) if '-lh' in s and 'both_allage' in s and 'FRN' in s]
 stcs.sort()
 
 # read in the stc and plot it
@@ -51,7 +51,8 @@ for stc in stcs:
 
     # save the movie of the difference plot
 
-    save_name = op.join(movie_path, '%s_percent.mov' % stc)
+    # save_name = op.join(movie_path, '%s_percent.mov' % stc)
+    save_name = op.join('/home/nordme/data/genz/genz_active/', '%s_percent.mov' % stc)
 
     plot.save_movie(fname=save_name, time_dilation=24, framerate=20, interpolation='linear')
 

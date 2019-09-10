@@ -21,7 +21,7 @@ def prek_score(p, subjects):
         for fi, fname in enumerate(fnames):
             raw = mne.io.read_raw_fif(fname, allow_maxshield=True)
 
-            # find four categories of visual events
+            # events are split for behavioral scoring
             words = mne.find_events(raw, shortest_event=2, mask=1)
             faces = mne.find_events(raw, shortest_event=2, mask=2)
             cars = mne.find_events(raw, shortest_event=2, mask=3)
@@ -81,7 +81,7 @@ def prek_score(p, subjects):
                         else:
                             continue
 
-                if np.in1d(event[0], images):  # for each regular image
+                if np.in1d(event[0], images):  # for each non-alien image
                     try:
                         if all_events[i+1][2] != 50:   # if the kid doesn't press a button next
                             correct_rejections += 1           # then it's a correct rejection
@@ -108,5 +108,5 @@ def prek_score(p, subjects):
 
 
 def pick_cov_events_prek(events):
-    events = [x for x in events if x[2] != 5] # we only want visual events, not button presses
+    events = [x for x in events if x[2] != 5] # we only want visual events for baseline, not button presses
     return events
