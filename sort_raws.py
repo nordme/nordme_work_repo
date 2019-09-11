@@ -21,6 +21,7 @@ subjs.sort()
 raw_list = []
 prebads = []
 
+
 if do_raws:
     for subject in subjs:
         target_path = op.join(target_dir, subject)

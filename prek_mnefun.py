@@ -27,10 +27,10 @@ from prek_score import prek_score
 
 dir = '/home/nordme/data/prek/post_camp/twa_hp/'
 
-params = mnefun.Params(tmin=-0.1, tmax=1, t_adjust=-0.067, n_jobs=18,
-                       proj_sfreq=200, n_jobs_fir=18,
+params = mnefun.Params(tmin=-0.1, tmax=1, t_adjust=-0.067, n_jobs=8,
+                       proj_sfreq=200, n_jobs_fir=8,
                        filter_length='5s', lp_cut=80., 
-                       n_jobs_resample=18,
+                       n_jobs_resample=8,
                        bmin=-0.1, bem_type='5120')
 #1451 rename
 skip = ['prek_1259', 'prek_1451']
@@ -46,8 +46,8 @@ params.subjects = subjects
 params.structurals = structurals
 params.dates = [(2013, 0, 00)] * len(params.subjects)
 # define which subjects to run
-params.subject_indices = np.arange(len(params.subjects))
-# params.subject_indices = np.setdiff1d(np.arange(len(params.subjects)), np.arange(41))
+# params.subject_indices = np.arange(len(params.subjects))
+params.subject_indices = np.setdiff1d(np.arange(len(params.subjects)), np.arange(13))
 # Aquistion params 
 params.acq_ssh = 'nordme@kasga.ilabs.uw.edu'
 params.acq_dir = '/brainstudio/prek/'
@@ -141,7 +141,7 @@ params.report_params.update(  # add plots
 mnefun.do_processing(
     params,
     fetch_raw=False,
-    do_sss=False, # do tSSS
+    do_sss=True, # do tSSS
     do_score=False,  # do scoring
     gen_ssp=False, # generate ssps
     apply_ssp=False, # apply ssps

@@ -14,6 +14,8 @@ Notes:
 
 """
 
+# post_camp exceptions to run_names:
+# prek_1112: use pskt_01, pskt_03
 
 # pre_camp exceptions to run_names:
 # prek 1714: use pskt_02, pskt_03
@@ -22,22 +24,23 @@ Notes:
 
 import mnefun
 import numpy as np
-
+import os
+import os.path as op
 
 dir = '/home/nordme/data/prek/post_camp/fixed_hp/'
-skip = ['prek_1259', 'prek_1451', 'prek_1714', 'prek_1936', 'prek_1964']
-#subjects = [x for x in os.listdir(dir) if op.isdir(op.join(dir, x)) and 'prek' in x and not np.in1d(x, skip)]
-subjects = ['prek_1936', 'prek_1964']
+skip = ['prek_1259', 'prek_1451', 'prek_1112', 'prek_1401']
+subjects = [x for x in os.listdir(dir) if op.isdir(op.join(dir, x)) and 'prek' in x and not np.in1d(x, skip)]
+# subjects = ['prek_1936', 'prek_1964']
 # subjects = ['prek_1714']
 
 subjects.sort()
 print(subjects)
 
-params = mnefun.Params(tmin=-0.1, tmax=1, n_jobs=18,
-                       proj_sfreq=200, n_jobs_fir=18,
+params = mnefun.Params(tmin=-0.1, tmax=1, n_jobs=8,
+                       proj_sfreq=200, n_jobs_fir=8,
                        filter_length='5s', lp_cut=80., 
-                       n_jobs_resample=18,
-                       bmin=-0.1, bem_type='5120', )
+                       n_jobs_resample=8,
+                       bmin=-0.1, bem_type='5120' )
 #1451 rename
 
 params.subjects = subjects
@@ -45,8 +48,8 @@ params.work_dir = dir
 params.structurals = params.subjects
 params.dates = [(2013, 0, 00)] * len(params.subjects)
 # define which subjects to run
-params.subject_indices = np.arange(len(params.subjects))
-# params.subject_indices = np.setdiff1d(np.arange(len(params.subjects)), np.arange(11))
+#params.subject_indices = np.arange(len(params.subjects))
+params.subject_indices = np.setdiff1d(np.arange(len(params.subjects)), np.arange(16))
 # params.subject_indices = [7]
 # Acquisition params
 params.acq_ssh = 'nordme@kasga.ilabs.uw.edu'
@@ -73,8 +76,8 @@ params.auto_bad_flat = None
 params.auto_bad_meg_thresh = 10
 # naming
 # params.run_names = ['%s_pskt_02_pre', '%s_pskt_03_pre']
-params.run_names = ['%s_pskt_01_pre', '%s_pskt_03_pre']
-# params.run_names = ['%s_pskt_01_pre', '%s_pskt_02_pre']
+# params.run_names = ['%s_pskt_01_pre', '%s_pskt_03_pre']
+params.run_names = ['%s_pskt_01_post', '%s_pskt_02_post']
 params.get_projs_from = np.arange(2)
 params.inv_names = ['%s']
 params.inv_runs = [np.arange(1)]
@@ -130,8 +133,8 @@ mnefun.do_processing(
     fetch_raw=False,
     do_sss=True, # do tSSS
     do_score=False,  # do scoring
-    gen_ssp=True, # generate ssps
-    apply_ssp=True, # apply ssps
+    gen_ssp=False, # generate ssps
+    apply_ssp=False, # apply ssps
     write_epochs=False, # epoching & filtering
     gen_covs=False, # make covariance 
     gen_fwd=False, # generate fwd model
