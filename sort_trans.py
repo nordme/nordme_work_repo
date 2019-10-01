@@ -4,7 +4,9 @@ import os
 import os.path as op
 import shutil
 
-parent_dir = '/brainstudio/MEG/genz/genz_proc/active/trans/'
+# parent_dir = '/brainstudio/MEG/genz/genz_proc/active/trans/'
+
+parent_dir = '/home/nordme/data/prek/post_camp/twa_hp/'
 
 files = os.listdir(parent_dir)
 files.sort()

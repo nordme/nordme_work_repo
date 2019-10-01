@@ -7,18 +7,18 @@ import mne
 import mnefun
 import numpy as np
 
-def pacc_score(p, subjects):
+#def pacc_score(p, subjects):
 
-    events = mne.find
+#    events = mne.find
 
 
 
 
 raw_dir = '/home/nordme/data/pitchacc/'
 
-# subjects
+subjects = ['pitchacc_157']
 
-subjects = [x for x in os.listdir(raw_dir) if op.isdir(op.join(raw_dir, x)) and 'pitchacc' in x]
+# subjects = [x for x in os.listdir(raw_dir) if op.isdir(op.join(raw_dir, x)) and 'pitchacc' in x]
 
 
 # INITIALIZE
@@ -46,7 +46,7 @@ pacc_params.tsss_dur = 4.
 pacc_params.trans_to = 'twa'  # where to transform head positions to
 pacc_params.sss_format = 'float'  # output type for MaxFilter
 pacc_params.movecomp = 'inter'
-pacc_params.int_order = 6
+pacc_params.int_order = 8
 pacc_params.ext_order = 3
 pacc_params.st_correlation = .98
 pacc_params.sss_origin = 'auto'
@@ -115,7 +115,7 @@ pacc_params.flat = dict(grad=1e-13, mag=1e-15)
 # COVARIANCE
 
 # covariance
-pacc_params.pick_events_cov = pick_cov_events_pacc # Function to pick a subset of events to use to make a covariance
+# pacc_params.pick_events_cov = pick_cov_events_pacc # Function to pick a subset of events to use to make a covariance
 pacc_params.cov_method = 'empirical'
 pacc_params.cov_rank = 'full'
 
@@ -150,10 +150,10 @@ pacc_params.report_params = dict(
 mnefun.do_processing(
     pacc_params,
     do_score = False,
-    do_sss = False,
+    do_sss = True,
     gen_ssp = False,
     apply_ssp = False,
-    write_epochs = True,
+    write_epochs = False,
     gen_covs = False,  # Generate covariances
     gen_fwd = False,  # Generate forward solutions (and source space if needed)
     gen_inv = False,  # Generate inverses

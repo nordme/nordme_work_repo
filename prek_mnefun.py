@@ -25,7 +25,10 @@ import os
 import os.path as op
 from prek_score import prek_score
 
-dir = '/home/nordme/data/prek/post_camp/twa_hp/'
+# dir = '/home/nordme/data/prek/post_camp/twa_hp/'
+dir = '/home/nordme/data/prek/old/'
+
+# dir = '/home/nordme/data/prek/cov_rank/'
 
 params = mnefun.Params(tmin=-0.1, tmax=1, t_adjust=-0.067, n_jobs=8,
                        proj_sfreq=200, n_jobs_fir=8,
@@ -33,9 +36,11 @@ params = mnefun.Params(tmin=-0.1, tmax=1, t_adjust=-0.067, n_jobs=8,
                        n_jobs_resample=8,
                        bmin=-0.1, bem_type='5120')
 #1451 rename
-skip = ['prek_1259', 'prek_1451']
-subjects = [x for x in os.listdir(dir) if op.isdir(op.join(dir, x)) and 'prek' in x and not np.in1d(x, skip)]
-# subjects = ['prek_1110']
+# 1259 and 1451 are pilot subjects
+
+# skip = ['prek_1259', 'prek_1451', 'prek_1210', 'prek_1401', 'prek_1750', 'prek_1939']
+# subjects = [x for x in os.listdir(dir) if op.isdir(op.join(dir, x)) and 'prek' in x and not np.in1d(x, skip)]
+subjects = ['prek_1110']
 subjects.sort()
 
 structurals = ['PREK_%s' % x[5:9] for x in subjects]
@@ -46,8 +51,8 @@ params.subjects = subjects
 params.structurals = structurals
 params.dates = [(2013, 0, 00)] * len(params.subjects)
 # define which subjects to run
-# params.subject_indices = np.arange(len(params.subjects))
-params.subject_indices = np.setdiff1d(np.arange(len(params.subjects)), np.arange(13))
+params.subject_indices = np.arange(len(params.subjects))
+# params.subject_indices = np.setdiff1d(np.arange(len(params.subjects)), np.arange(17,48))
 # Aquistion params 
 params.acq_ssh = 'nordme@kasga.ilabs.uw.edu'
 params.acq_dir = '/brainstudio/prek/'
@@ -83,6 +88,7 @@ params.proj_nums = [[1, 1, 0],  # ECG: grad/mag/eeg
                     [1, 1, 0],  # EOG
                     [0, 0, 0]]  # Continuous (from ERM)
 params.cov_method = 'empirical'
+params.cov_rank = None
 params.bem_type = '5120'
 params.compute_rank = True
 
@@ -133,7 +139,13 @@ params.report_params.update(  # add plots
         dict(analysis='Conditions', name='cars',
              inv='%s-80-sss-meg-free-inv.fif'),
         dict(analysis='Conditions', name='aliens',
-             inv='%s-80-sss-meg-free-inv.fif')
+             inv='%s-80-sss-meg-free-inv.fif')],
+
+    whitening=[
+        dict(analysis='Conditions', name='words', cov='%s-80-sss-cov.fif'),
+        dict(analysis='Conditions', name='faces', cov='%s-80-sss-cov.fif'),
+        dict(analysis='Conditions', name='cars', cov='%s-80-sss-cov.fif'),
+        dict(analysis='Conditions', name='aliens', cov='%s-80-sss-cov.fif')
     ],
     psd=False,
 )
@@ -143,8 +155,8 @@ mnefun.do_processing(
     fetch_raw=False,
     do_sss=True, # do tSSS
     do_score=False,  # do scoring
-    gen_ssp=False, # generate ssps
-    apply_ssp=False, # apply ssps
+    gen_ssp=True, # generate ssps
+    apply_ssp=True, # apply ssps
     write_epochs=False, # epoching & filtering
     gen_covs=False, # make covariance
     gen_fwd=False, # generate fwd model
