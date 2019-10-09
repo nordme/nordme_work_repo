@@ -93,7 +93,7 @@ for subject in subjects:
         es01 = epo['%s/learn/s01' % block]
         es02 = epo['%/learn/s02' % block]
 
-        lh_es01 = 
+        lh_es01 =
 
 
 

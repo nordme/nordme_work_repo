@@ -25,7 +25,10 @@ import os
 import os.path as op
 from prek_score import prek_score
 
-dir = '/home/nordme/data/prek/post_camp/twa_hp/'
+#dirc = '/home/nordme/data/prek/post_camp/twa_hp/'
+#dirc = '/storage/prek/post_camp/fixed_hp/'
+
+dirc = '/home/nordme/data/prek/'
 
 params = mnefun.Params(tmin=-0.1, tmax=1, t_adjust=-0.067, n_jobs=8,
                        proj_sfreq=200, n_jobs_fir=8,
@@ -34,20 +37,21 @@ params = mnefun.Params(tmin=-0.1, tmax=1, t_adjust=-0.067, n_jobs=8,
                        bmin=-0.1, bem_type='5120')
 #1451 rename
 skip = ['prek_1259', 'prek_1451']
-subjects = [x for x in os.listdir(dir) if op.isdir(op.join(dir, x)) and 'prek' in x and not np.in1d(x, skip)]
+subjects = [x for x in os.listdir(dirc) if op.isdir(op.join(dirc, x)) and 'prek' in x and not np.in1d(x, skip)]
 # subjects = ['prek_1110']
 subjects.sort()
 
 structurals = ['PREK_%s' % x[5:9] for x in subjects]
 
 params.score = prek_score
-params.work_dir = dir
+params.work_dir = dirc
 params.subjects = subjects
 params.structurals = structurals
 params.dates = [(2013, 0, 00)] * len(params.subjects)
 # define which subjects to run
 # params.subject_indices = np.arange(len(params.subjects))
-params.subject_indices = np.setdiff1d(np.arange(len(params.subjects)), np.arange(13))
+# params.subject_indices = np.setdiff1d(np.arange(len(params.subjects)), np.arange(13))
+params.subject_indices = [0]
 # Aquistion params 
 params.acq_ssh = 'nordme@kasga.ilabs.uw.edu'
 params.acq_dir = '/brainstudio/prek/'
@@ -141,14 +145,14 @@ params.report_params.update(  # add plots
 mnefun.do_processing(
     params,
     fetch_raw=False,
-    do_sss=True, # do tSSS
+    do_sss=False, # do tSSS
     do_score=False,  # do scoring
     gen_ssp=False, # generate ssps
     apply_ssp=False, # apply ssps
     write_epochs=False, # epoching & filtering
     gen_covs=False, # make covariance
-    gen_fwd=False, # generate fwd model
-    gen_inv=False, # general inverse
-    gen_report=False, #print report
+    gen_fwd=True, # generate fwd model
+    gen_inv=True, # general inverse
+    gen_report=True, #print report
     print_status=True # show status
 )
