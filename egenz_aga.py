@@ -119,21 +119,26 @@ def plot_ams_bars(diffs, save_name, block, hemi, peak):
     return fig, early, mid, late
 
 
-def bothhems_ams_bars(lh_diffs, rh_diffs, save_name, block):
+def bothhems_ams_bars(subject, heights, save_name, block):
+    blue = '#397489'
+    red = '#894739'
 
-    #lh_diffs: le100, lm100, ll100; le400, lm400, ll400
-    #rh_diffs: re100, rm100, rl100; re400, rm400, rl400
+    fig, axes = plt.subplots(nrows=2, ncols=2, sharex=True, sharey=True)
+    fig.suptitle('%s: Areal mean signal for subject %s' % (block, subject))
+    plt.xticks(ticks=np.arange(3), labels=['Early', 'Mid', 'Late'])
+    ax0, ax1, ax2, ax3 = axes.flatten()
+    ax0.set_title("LH")
+    ax1.set_title('RH')
+    ax0.set_ylabel('N100')
+    ax2.set_ylabel('N400')
 
-    lh1, lh4 = lh_diffs
-    rh1, rh4 = rh_diffs
+    for i, ax in enumerate((ax0, ax1, ax2, ax3)):
+        ydata = heights[i]
+        colors = [[],[],[]]
+        for r in range(3):
+            colors[r] = red if ydata[r] < 0 else blue
+        ax.bar(x=np.arange(3), height=ydata, color=colors)
 
-    plt.figure()
-    ax1, ax2 = plt.subplots(nrows=1, ncols=2, sharex=False, sharey=False)
-    , x = np.arange(3), height = [early, mid, late], color = colors
-    plt.title('%s %s %s %s' % (subject, block, hemi, peak))
-    plt.ylim(-50, 50)
-    plt.ylabel('S01 - S02 areal mean signal averaged over trial blocks')
-    plt.xticks(np.arange(3), labels=['Early trials', 'Mid trials', 'Late trials'])
     plt.savefig(save_name)
 
 
@@ -195,7 +200,7 @@ for subject in subjects:
             else:
                 plotA = plot_ams_epochs(diffs=rh100, save_name=A, block=block, hemi=hemi, peak=peak)
                 plt.close()
-                plotB, rle100, rm100, rl100 = plot_ams_bars(diffs=rh100, save_name=B, block=block, hemi=hemi, peak=peak)
+                plotB, re100, rm100, rl100 = plot_ams_bars(diffs=rh100, save_name=B, block=block, hemi=hemi, peak=peak)
                 plt.close()
             
         # Add the block data to a text file
