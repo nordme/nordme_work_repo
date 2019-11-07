@@ -8,14 +8,32 @@ import os.path as op
 import matplotlib.pyplot as plt
 
 # options
+area = 'temporal' # options are: frontal, temporal, parietal, occipital
 t1_or_t2 = 't1'
 age = 'all'
 gender = 'all'
-n = 50  # the sample number. Choose 50 to get N=100 and choose 125 to get N=400
-lh_picks = ['MEG1612', 'MEG1622', 'MEG1632', 'MEG1642', 'MEG0232',
-            'MEG0242', 'MEG1613', 'MEG1623', 'MEG1633', 'MEG1643', 'MEG0233', 'MEG0243']
-rh_picks = ['MEG2412', 'MEG2413', 'MEG2422', 'MEG2423', 'MEG2432',
-            'MEG2433', 'MEG2442', 'MEG2443', 'MEG1332', 'MEG1333', 'MEG1342', 'MEG1343']
+
+if area == 'frontal':
+    lh_picks = ['MEG0522', 'MEG0532', 'MEG0612', 'MEG0512', 'MEG0542', 'MEG0312',
+                'MEG0523', 'MEG0533', 'MEG0613', 'MEG0513', 'MEG0543', 'MEG0313']
+    rh_picks = ['MEG0912', 'MEG0942', 'MEG1022', 'MEG0922', 'MEG0932', 'MEG1212',
+                'MEG0913', 'MEG0943', 'MEG1023', 'MEG0923', 'MEG0933', 'MEG1213']
+elif area == 'temporal':
+    lh_picks = ['MEG1612', 'MEG1622', 'MEG1632', 'MEG1642', 'MEG0232',
+                'MEG0242', 'MEG1613', 'MEG1623', 'MEG1633', 'MEG1643', 'MEG0233', 'MEG0243']
+    rh_picks = ['MEG2412', 'MEG2413', 'MEG2422', 'MEG2423', 'MEG2432',
+                'MEG2433', 'MEG2442', 'MEG2443', 'MEG1332', 'MEG1333', 'MEG1342', 'MEG1343']
+elif area == 'parietal':
+    lh_picks = ['MEG0442', 'MEG0432', 'MEG0712', 'MEG1812', 'MEG1822', 'MEG0742',
+                'MEG0443', 'MEG0423', 'MEG0713', 'MEG1813', 'MEG1823', 'MEG0743']
+    rh_picks = ['MEG0722', 'MEG1142', 'MEG1132', 'MEG0732', 'MEG2212', 'MEG2222',
+                'MEG0723', 'MEG1143', 'MEG1133', 'MEG0733', 'MEG2213', 'MEG2223']
+else:           # occipital
+    lh_picks = ['MEG1942', 'MEG1922', 'MEG1632', 'MEG1642', 'MEG0232',
+                'MEG0242', 'MEG1613', 'MEG1623', 'MEG1633', 'MEG1643', 'MEG0233', 'MEG0243']
+    rh_picks = ['MEG2412', 'MEG2413', 'MEG2422', 'MEG2423', 'MEG2432',
+                'MEG2433', 'MEG2442', 'MEG2443', 'MEG1332', 'MEG1333', 'MEG1342', 'MEG1343']
+
 lh_picks.sort()
 rh_picks.sort()
 
@@ -23,12 +41,12 @@ rh_picks.sort()
 
 blocks = ['faces', 'emojis', 'thumbs', 'all']
 parent_dir = '/storage/genz_active/%s/fixed_hp/' % t1_or_t2
-save_dir = '/storage/genz_learners/t1/fixed_hp/'
+save_dir = '/storage/genz_learners/t1/fixed_hp/%s' % area
 skip = ['genz115_9a', 'genz526_17a', 'genz131_9a', 'genz214_11a', 'genz409_15a']
 subjects = [x for x in os.listdir(parent_dir) if 'genz' in x and op.isdir(parent_dir + x) and not np.in1d(x, skip)]
 # subjects = ['genz532_17a']
 subjects.sort()
-# subjects = subjects[72:116]
+# subjects = subjects[0:5]
 
 work_dir = parent_dir
 group_data = []
@@ -36,8 +54,8 @@ reg_data = []
 reg_times = []
 times = []
 
-# calculate areal mean signal function
-# epochs should be one subject, one block, one syllable,
+# function to calculate areal mean signal
+# epochs should be one subject, one block, one syllable
 
 def calc_ams(epochs, block, lh_picks, rh_picks):
     lh_picks.sort()
@@ -97,6 +115,9 @@ def plot_ams_epochs(diffs, save_name, block, hemi, peak):
 
 
 def plot_ams_bars(diffs, save_name, block, hemi, peak):
+    blue = '#397489'
+    red = '#894739'
+
     early = diffs[0:46].mean()
     mid = diffs[46:92].mean()
     late = diffs[92:138].mean()
@@ -104,9 +125,9 @@ def plot_ams_bars(diffs, save_name, block, hemi, peak):
     colors = [[], [], []]
     for i, t in enumerate((early, mid, late)):
         if t > 0:
-            colors[i] = 'b'
+            colors[i] = blue
         else:
-            colors[i] = 'r'
+            colors[i] = red
 
     plt.figure()
     fig = plt.bar(x=np.arange(3), height=[early, mid, late], color=colors)
@@ -126,6 +147,7 @@ def bothhems_ams_bars(subject, heights, save_name, block):
     fig, axes = plt.subplots(nrows=2, ncols=2, sharex=True, sharey=True)
     fig.suptitle('%s: Areal mean signal for subject %s' % (block, subject))
     plt.xticks(ticks=np.arange(3), labels=['Early', 'Mid', 'Late'])
+    plt.ylim(ymin=-15, ymax=25)
     ax0, ax1, ax2, ax3 = axes.flatten()
     ax0.set_title("LH")
     ax1.set_title('RH')
@@ -140,7 +162,30 @@ def bothhems_ams_bars(subject, heights, save_name, block):
         ax.bar(x=np.arange(3), height=ydata, color=colors)
 
     plt.savefig(save_name)
+    
+def plot_waveforms(subject, lh_s01, lh_s02, rh_s01, rh_s02, block, save_name):
 
+    blue = '#397489'
+    dkblue = '#175267'
+    lmean1 = lh_s01.mean(axis=0)
+    lmean2 = lh_s02.mean(axis=0)
+    rmean1 = rh_s01.mean(axis=0)
+    rmean2 = rh_s02.mean(axis=0)
+    fig, (ax1, ax2) = plt.subplots(nrows=1, ncols=2, sharey=True)
+    plt.suptitle('%s %s S01 and S02' % (subject, block))
+    plt.ylabel('S01 and S02 areal mean signal')
+    plt.xlabel('Time (samples)')
+    ax1.plot(lmean1, color=blue)
+    ax1.plot(lmean2, color=dkblue)
+    ax2.plot(rmean1, color=blue)
+    ax2.plot(rmean2, color=dkblue)
+
+#    plt.ylim(0, 1e-12)
+#    plt.xlim(xmin=-100, xmax=750)
+
+    plt.savefig(save_name)
+
+    return fig
 
 for subject in subjects:
     epo_path = op.join(parent_dir, subject, 'epochs', 'All_80-sss_%s-epo.fif' % subject)
@@ -177,10 +222,8 @@ for subject in subjects:
         # GRAPH 2: Bar graph showing averaged amp differences for early, mid and late epochs.
 
         for hemi, peak in [['lh', '100'], ['lh', '400'], ['rh', '100'], ['rh', '400']]:
-            A = op.join(save_path, '%s_%s_%s_%s_ams_epochs.png' % (subject, block, hemi, peak))
-            B = op.join(save_path, '%s_%s_%s_%s_ams_bars.png' % (subject, block, hemi, peak))
-
-
+            A = op.join(save_path, '%s_%s_%s_%s_%s_ams_epochs.png' % (subject, area, block, hemi, peak))
+            B = op.join(save_path, '%s_%s_%s_%s_%s_ams_bars.png' % (subject, area, block, hemi, peak))
 
             if '400' in peak and 'lh' in hemi:
                 plotA = plot_ams_epochs(diffs=lh400, save_name=A, block=block, hemi=hemi, peak=peak)
@@ -202,16 +245,23 @@ for subject in subjects:
                 plt.close()
                 plotB, re100, rm100, rl100 = plot_ams_bars(diffs=rh100, save_name=B, block=block, hemi=hemi, peak=peak)
                 plt.close()
-            
+
         # Add the block data to a text file
         if block == 'all':
+            heights = [[le100, lm100, ll100], [re100, rm100, rl100], [le400, lm400, ll400], [re400, rm400, rl400]]
+            hems_save = op.join(save_path, '%s_%s_all_both_hems.png' % (subject, area))
+            plotC = bothhems_ams_bars(subject=subject, heights=heights, save_name=hems_save, block=block)
+            plt.close()
+            waves_save = op.join(save_path, '%s_%s_all_waveforms.png' % (subject, area))
+            plotD = plot_waveforms(subject, lh_s01, lh_s02, rh_s01, rh_s02, block, waves_save)
+            plt.close()
             if rl400 >= ll400 and rl100>=ll100:
                 learner = 'rh_learner'
             elif rl400 <= ll400 and rl100 <= ll100:
                 learner = 'lh_learner'
             else:
                 learner = 'mixed'
-                
+
             with open(op.join(save_dir, 'global_all_ams.txt'), 'ab') as fid:
                 print('Adding a line to the global all ams file.')
                 fid.write((('%s, %s, %s, %s, %s, %s \n' %
@@ -225,10 +275,23 @@ for subject in subjects:
                 fid.write((('%s, %s, %s, %s \n' %
                             ('left 400:', le400, lm400, ll400)).encode()))
                 fid.write((('%s, %s, %s, %s \n' %
-                            ('right 100:', rle100, rm100, rl100)).encode()))
+                            ('right 100:', re100, rm100, rl100)).encode()))
                 fid.write((('%s, %s, %s, %s \n' %
                             ('right 400:', re400, rm400, rl400)).encode()))
         else:
+            if rl400 >= ll400 and rl100>=ll100:
+                learner = 'rh_learner'
+            elif rl400 <= ll400 and rl100 <= ll100:
+                learner = 'lh_learner'
+            else:
+                learner = 'mixed'
+            waves_save = op.join(save_path, '%s_%s_%s_waveforms.png' % (subject, block, area))
+            plotD = plot_waveforms(subject, lh_s01, lh_s02, rh_s01, rh_s02, block, waves_save)
+            plt.close()
+            with open(op.join(save_dir, 'global_all_ams.txt'), 'ab') as fid:
+                print('Adding a line to the global all ams file.')
+                fid.write((('%s, %s, %s, %s, %s, %s, %s \n' %
+                            (subject, learner, block, ll100, ll400, rl100, rl400)).encode()))
             with open(op.join(save_dir, subject, '%s_%s_ams.txt' % (subject, block)), 'ab') as fid:
                 print('writing ams data to a csv at %s' % op.join(subject, '%s_%s_ams.txt' % (subject, block)))
                 fid.write(('%s: S01 - S02 areal mean signal \n' % block).encode())
@@ -237,7 +300,7 @@ for subject in subjects:
                 fid.write((('%s, %s, %s, %s \n' %
                             ('left 400:', le400, lm400, ll400)).encode()))
                 fid.write((('%s, %s, %s, %s \n' %
-                            ('right 100:', rle100, rm100, rl100)).encode()))
+                            ('right 100:', re100, rm100, rl100)).encode()))
                 fid.write((('%s, %s, %s, %s \n' %
                             ('right 400:', re400, rm400, rl400)).encode()))
 
