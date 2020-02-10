@@ -12,10 +12,17 @@ import numpy as np
 from genz_score import (score, aud_in_names, aud_in_numbers,
                    pick_aud_cov_events, pick_vis_cov_events)
 
-#raw_dir = '/brainstudio/MEG/genz/genz_proc/active/twa_hp/'
-raw_dir = '/home/nordme/data/genz_active/'
+raw_dir = ''
 
-subjs = [x for x in os.listdir(raw_dir) if op.isdir('%s%s' % (raw_dir, x)) and 'genz' in x]
+fixed_or_twa = 'twa'
+# raw_dir = '/storage/genz_active/t1/%s_hp/' % fixed_or_twa
+if fixed_or_twa == 'twa':
+    trans_to = 'twa'
+else:
+    trans_to = (0.0, 0.0, 0.04)
+
+#subjs = [x for x in os.listdir(raw_dir) if op.isdir('%s%s' % (raw_dir, x)) and 'genz' in x]
+subjs = ['']
 subjs.sort()
 
 params = mnefun.Params(tmin=-0.1, tmax=0.75, t_adjust=0, n_jobs=12,
@@ -24,13 +31,8 @@ params = mnefun.Params(tmin=-0.1, tmax=0.75, t_adjust=0, n_jobs=12,
                        filter_length='auto', lp_cut=80., bmin=-0.1,
                        lp_trans='auto', bem_type='inner_skull')
 
-
 params.subjects = subjs
-
-params.work_dir = '/home/nordme/data/genz_active/'
-
-# params.work_dir = '/brainstudio/MEG/genz/genz_proc/active/twa_hp/'
-
+params.work_dir = raw_dir
 params.subject_indices = np.arange(len(params.subjects))
 #params.subject_indices = np.setdiff1d(np.arange(len(params.subjects)), [])
 params.dates = [(2014, 10, 14)] * len(params.subjects)
@@ -53,7 +55,7 @@ params.sws_dir = '/data07/nordme/genz'
 params.sss_type = 'python'
 params.sss_regularize = 'in'
 params.st_correlation = 0.98
-params.trans_to = (.0, .0, 0.04)
+params.trans_to = trans_to
 params.tsss_dur = 20.
 params.movecomp = 'inter'
 params.coil_t_window = 'auto'
@@ -74,6 +76,9 @@ params.on_missing = 'ignore'  # some subjects will not complete the paradigm
 params.in_names = aud_in_names
 params.in_numbers = aud_in_numbers
 params.cov_method = 'empirical'
+params.compute_rank = True
+params.cov_rank = None
+params.force_erm_cov_rank_full = False
 params.runs_empty = ['%s_erm_01'] # add in the empty room covariance
 params.bem_type = '5120'
 # The ones we actually want

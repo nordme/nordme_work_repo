@@ -12,11 +12,11 @@ import numpy as np
 
 signed = False
 
-method = 'eLORETA'
+method = 'dSPM'
 
-skip_visual = False
+skip_visual = True
 
-skip_auditory = True
+skip_auditory = False
 
 if signed:
     tag = '/signed/'
@@ -25,10 +25,12 @@ else:
    tag = '/'
    ext = ''
 
-# raw_dir = '/home/nordme/data/genz/genz_active/'
+# raw_dir = '/home/nordme/data/genz/'
+
+raw_dir = '/storage/genz_active/t1/twa_hp/'
 # raw_dir = '/brainstudio/MEG/genz/genz_proc/active/'
-raw_dir = '/brainstudio/MEG/genz/genz_proc/active/twa_hp/'
-anat_dir = '/brainstudio/MEG/genz/anatomy/'
+# raw_dir = '/brainstudio/MEG/genz/genz_proc/active/twa_hp/'
+# anat_dir = '/brainstudio/MEG/genz/anatomy/'
 
 subjects = [x for x in os.listdir(raw_dir) if op.isdir('%s%s' % (raw_dir, x)) and 'genz' in x]
 subjects.sort()

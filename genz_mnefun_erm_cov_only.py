@@ -13,33 +13,34 @@ from genz_score import (score, aud_in_names, aud_in_numbers)
 
 
 fixed_or_twa = 'twa'
-raw_dir = '/storage/genz_active/t1/%s_hp/' % fixed_or_twa
+# raw_dir = '/storage/genz_active/t1/%s_hp/' % fixed_or_twa
 
-# raw_dir = '/home/nordme/data/genz/'
+raw_dir = '/home/nordme/data/genz/'
 
 if fixed_or_twa == 'twa':
     trans_to = 'twa'
 else:
     trans_to = (0.0, 0.0, 0.04)
 
-subjs = [x for x in os.listdir(raw_dir) if op.isdir('%s%s' % (raw_dir, x)) and 'genz' in x]
-# subjs = ['genz105_9a']
+# subjs = [x for x in os.listdir(raw_dir) if op.isdir('%s%s' % (raw_dir, x)) and 'genz' in x]
+subjs = ['erica_peterson']
 subjs.sort()
 
 params = mnefun.Params(tmin=-0.1, tmax=0.75, t_adjust=0, n_jobs=12,
                        decim=4, n_jobs_mkl=1, proj_sfreq=200,
                        n_jobs_fir=12, n_jobs_resample=12,
                        filter_length='auto', lp_cut=80., bmin=-0.1,
-                       lp_trans='auto', bem_type='inner_skull')
+                       lp_trans='auto', bem_type='inner_skull', fwd_mindist=0.0)
 
 params.subjects = subjs
 params.work_dir = raw_dir
 params.subject_indices = np.arange(len(params.subjects))
 #params.subject_indices = np.setdiff1d(np.arange(len(params.subjects)), [])
 params.dates = [(2014, 10, 14)] * len(params.subjects)
-params.structurals = params.subjects
+params.structurals = ['fsaverage']
 params.subject_run_indices = None
-params.subjects_dir = '/storage/anat/subjects/'
+# params.subjects_dir = '/storage/anat/subjects/'
+params.subjects_dir = '/home/nordme/data/genz/anat/'
 params.score = score
 params.run_names = [
     '%s_emojis_learn_01',
@@ -151,18 +152,18 @@ default = True
 
 mnefun.do_processing(
     params,
-    fetch_raw=False,  # Fetch raw recording files from acq machine
+#    fetch_raw=False,  # Fetch raw recording files from acq machine
     do_score=False,  # do scoring
-    push_raw=False,  # Push raw files and SSS script to SSS workstation
+#    push_raw=False,  # Push raw files and SSS script to SSS workstation
     do_sss=False, # Run SSS remotely
-    fetch_sss=False,  # Fetch SSSed files
-    do_ch_fix=False,  # Fix channel ordering
+#    fetch_sss=False,  # Fetch SSSed files
+#    do_ch_fix=False,  # Fix channel ordering
     gen_ssp=False,  # Generate SSP vectors
     apply_ssp=False,  # Apply SSP vectors and filtering
     write_epochs=False,  # Write epochs to disk
-    gen_covs=True,  # Generate covariances
+    gen_covs=False,  # Generate covariances
     gen_fwd=True,  # Generate forward solutions (and source space if needed)
-    gen_inv=True,  # Generate inverses
-    gen_report=True,
+    gen_inv=False,  # Generate inverses
+    gen_report=False,
     print_status=False,
 )

@@ -4,6 +4,7 @@
 import os
 import os.path as op
 import mne
+import numpy as np
 from mne.minimum_norm import (apply_inverse, read_inverse_operator)
 
 # set important variables
@@ -12,28 +13,53 @@ from mne.minimum_norm import (apply_inverse, read_inverse_operator)
 
 equalize = True
 
-raw_dir = '/brainstudio/MEG/genz/genz_proc/active/twa_hp/'
-anat_dir = '/brainstudio/MEG/genz/anatomy/'
+# raw_dir = '/brainstudio/MEG/genz/genz_proc/active/twa_hp/'
+# anat_dir = '/brainstudio/MEG/genz/anatomy/'
 
-try_eLORETA = True
+# raw_dir = '/storage/genz_active/t1/twa_hp/'
+# anat_dir = '/storage/anat/subjects/'
+
+raw_dir = '/home/nordme/data/genz/'
+anat_dir = '/home/nordme/data/genz/anat'
+
+try_eLORETA = False
 
 if try_eLORETA:
     method = 'eLORETA'
 else:
     method = 'dSPM'
 
-subjects = [x for x in os.listdir(raw_dir) if op.isdir('%s%s' % (raw_dir, x)) and 'genz' in x]
+subjects = ['genz125_9a']
+# subjects = ['genz219_11a', 'genz223_11a']
+# subjects = [x for x in os.listdir(raw_dir) if op.isdir('%s%s' % (raw_dir, x)) and 'genz' in x and not np.in1d(x, skip)]
 subjects.sort()
 
 snr = 3.
 lambda2 = 1. / snr ** 2
 
+# prep lists of epoch conditions and codes for the conditions
 
 blocks = [ 'a','f', 'e', 't']
 conditions = ['l', 't']
 syllables = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12']
 
+bnames = [ '','faces/', 'emojis/', 'thumbs/']
+cnames = ['learn', 'test']
 
+epoch_names = ['%s%s/s%02d' % (bname, cname, sname)
+         for cname in cnames
+         for bname in bnames
+         for sname in (range(1, 13) if cname == 'test' else range(1, 4))]
+
+# code pattern:  block, condition, syllable position
+# a = all blocks, f = faces, e = emojis, t = thumbs; l = learn condition, t = test condition
+
+codes = ['%s%s%02d' % (block, condition, syllable)
+         for condition in conditions
+         for block in blocks
+         for syllable in (range(1, 13) if condition == 't' else range(1, 4))]
+
+# create stcs
 
 for subject in subjects:
     # create directories and paths
@@ -57,7 +83,7 @@ for subject in subjects:
     stc_path = op.join(sub_path, '%s_stc' % method, 'auditory')
     epo_path = op.join(sub_path, 'epochs', 'All_80-sss_%s-epo.fif' % subject)
     ave_path = op.join(sub_path, 'inverse', 'auditory')
-    inv_path = op.join(sub_path, 'inverse', '%s_aud-80-sss-meg-erm-fixed-inv.fif' % subject)
+    inv_path = op.join(sub_path, 'inverse', '%s-meg-erm-fixed-inv.fif' % subject)
     src_path = op.join(anat_dir, subject, 'bem', '%s-oct-6-src.fif' % subject)
 
     # read in inverse and compute morph matrix for later application
@@ -67,113 +93,30 @@ for subject in subjects:
                                      subjects_dir=anat_dir, spacing=5)
     morph.save(op.join(sub_path, '%s_stc' % method, '%s_source_morph.h5' % subject), overwrite=True)
 
-
     # AUDITORY STCS
 
     # create appropriate groups of epochs
 
     epochs = mne.read_epochs(epo_path)
 
-    # code pattern:  block, condition, syllable position
-    # a = all blocks, f = faces, e = emojis, t = thumbs; l = learn condition, t = test condition
-    
-    all_epochs = [    
-        # all learn blocks by syllable position (e.g. all the s01s from faces, emojis, thumbs together)
-        epochs['learn/s01'],
-        epochs['learn/s02'],
-        epochs['learn/s03'],
-    
-        # learn blocks separately (i.e. s01, s02, and s03 split by faces, emojis, and thumbs)
-        epochs['faces/learn/s01'],
-        epochs['faces/learn/s02'],
-        epochs['faces/learn/s03'],
-        epochs['emojis/learn/s01'],
-        epochs['emojis/learn/s02'],
-        epochs['emojis/learn/s03'],
-        epochs['thumbs/learn/s01'],
-        epochs['thumbs/learn/s02'],
-        epochs['thumbs/learn/s03'],
-    
-        # all test block syllables (collapsed across f/e/t)
-        epochs['test/s01'],
-        epochs['test/s02'],
-        epochs['test/s03'],
-        epochs['test/s04'],
-        epochs['test/s05'],
-        epochs['test/s06'],
-        epochs['test/s07'],
-        epochs['test/s08'],
-        epochs['test/s09'],
-        epochs['test/s10'],
-        epochs['test/s11'],
-        epochs['test/s12'],
-    
-        # test block syllables separated by f/e/t
-        # 1,2,3 = real "words"
-        # 4,5,6 = near miss words
-        # 7,8,9 = near misses type 2
-        # 10, 11, 12 = random syllable combos
-        epochs['faces/test/s01'],
-        epochs['faces/test/s02'],
-        epochs['faces/test/s03'],
-        epochs['faces/test/s04'],
-        epochs['faces/test/s05'],
-        epochs['faces/test/s06'],
-        epochs['faces/test/s07'],
-        epochs['faces/test/s08'],
-        epochs['faces/test/s09'],
-        epochs['faces/test/s10'],
-        epochs['faces/test/s11'],
-        epochs['faces/test/s12'],
-        # emojis
-        epochs['emojis/test/s01'],
-        epochs['emojis/test/s02'],
-        epochs['emojis/test/s03'],
-        epochs['emojis/test/s04'],
-        epochs['emojis/test/s05'],
-        epochs['emojis/test/s06'],
-        epochs['emojis/test/s07'],
-        epochs['emojis/test/s08'],
-        epochs['emojis/test/s09'],
-        epochs['emojis/test/s10'],
-        epochs['emojis/test/s11'],
-        epochs['emojis/test/s12'],
-        # thumbs
-        epochs['thumbs/test/s01'],
-        epochs['thumbs/test/s02'],
-        epochs['thumbs/test/s03'],
-        epochs['thumbs/test/s04'],
-        epochs['thumbs/test/s05'],
-        epochs['thumbs/test/s06'],
-        epochs['thumbs/test/s07'],
-        epochs['thumbs/test/s08'],
-        epochs['thumbs/test/s09'],
-        epochs['thumbs/test/s10'],
-        epochs['thumbs/test/s11'],
-        epochs['thumbs/test/s12']]
+    aud_epochs = []
 
+    for name in epoch_names:
+        aud_epochs.append(epochs[name])
 
-    codes = ['%s%s%02d' % (block, condition, syllable) 
-                    for condition in conditions                
-                    for block in blocks                    
-                    for syllable in (range(1,13) if condition == 't' else range(1,4))]
-    
-   
     print('Creating stcs for subject %s' % subject)
 
-    for code, epoch in zip(codes, all_epochs):
-        # average the epochs into evokeds
+    for code, epoch in zip(codes, aud_epochs):
+        # make individual evoked files by averaging the epochs
         print('Creating averages for subject %s %s' % (subject, code))
         ave = epoch.average(method='mean')
         ave.save(op.join(ave_path, '%s_%s-ave.fif' % (code, subject)))
         # make the stc
         stc = apply_inverse(ave, inv, method=method, lambda2=lambda2)
         stc.save(op.join(stc_path, '%s_%s' % (code, subject)))
-        # make morphed stcs for use in difference movies
+        # make morphed stcs for use in movies
         morphed_stc = morph.apply(stc)
         morphed_stc.save(op.join(stc_path, '%s_%s_morphed' % (code, subject)))
-
-
 
     # VISUAL STCS
 
@@ -182,7 +125,7 @@ for subject in subjects:
 
     vave_path = op.join(sub_path, 'inverse', 'visual')
     vstc_path = op.join(sub_path, '%s_stc' % method, 'visual')
-    vinv_path = op.join(sub_path, 'inverse', '%s_vis-80-sss-meg-erm-fixed-inv.fif' % subject)
+    vinv_path = op.join(sub_path, 'inverse', '%s-meg-erm-fixed-inv.fif' % subject)
 
     vinv = read_inverse_operator(vinv_path)
 

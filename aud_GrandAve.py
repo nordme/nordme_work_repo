@@ -20,12 +20,13 @@ fixed_or_twa = 'fixed'
 vis_or_aud = 'aud'
 by_all = True
 by_gender = True
+resp = 'FRN'  # 'FRN' or 'SPN'; applies to vis only
 
 # establish key variables
 ages = ['9a', '11a', '13a', '15a', '17a']
 data_path = '/storage/genz_active/t1/%s_hp/' % fixed_or_twa
 avg_path = op.join(data_path, 'group_averages')
-analysis = 'Split'
+analysis = 'Split' if vis_or_aud == 'aud' else resp + '-Split'
 lpf = 80
 
 # prep subject lists
@@ -54,7 +55,7 @@ blocks = ['emojis', 'faces', 'thumbs']
 stim = ['aud', 'vis']
 conditions = ['learn', 'test']
 aud_syl = ['s01', 's02', 's03']
-vis_syl = ['s01', 's02', 's03', 's04', 's05', 's06', 's07', 's08', 's09', 's10', 's11', 's12']
+vis_fdbk = ['correct', 'incorrect']
 
 aud_conditions = []
 aud_names = []
@@ -62,7 +63,7 @@ vis_conditions = []
 vis_names = []
 
 aud_product = list(itertools.product(blocks, conditions, aud_syl))
-vis_product = list(itertools.product(blocks, conditions, vis_syl))
+vis_product = list(itertools.product(blocks, ['learn'], vis_fdbk))
 
 for (b, c, s) in aud_product:
     ac = 'aud/%s/%s/%s' % (b,c,s)
@@ -70,14 +71,14 @@ for (b, c, s) in aud_product:
     aud_conditions.append(ac)
     aud_names.append(an)
 
-for (b, c, s) in vis_product:
-    vc = 'vis/%s/%s/%s' % (b,c,s)
-    vn = 'vis_%s_%s_%s' % (b,c,s)
+for (b, c, f) in vis_product:
+    vc = 'vis/%s/%s/%s' % (b,c,f)
+    vn = 'vis_%s_%s_%s' % (b,c,f)
     vis_conditions.append(vc)
     vis_names.append(vn)
 
 # begin writing grand averages by age group, separated by gender if so specified
-# iterate by age group, by condition code, 
+# iterate by age group, by condition code,
 
 gaves = []
 f_gaves = []
@@ -121,10 +122,10 @@ for age in ages:
             f_gaves[j].comment = 'f_%s' % cond
             m_gaves.append(mne.grand_average(m_evokeds))
             m_gaves[j].comment = 'm_%s' % cond
-        mne.write_evokeds(op.join(avg_path, 'f' + 'AUD_%s_%s_N%d-ave.fif'
-                                  % (age, analysis, len(f_evokeds))), f_gaves)
-        mne.write_evokeds(op.join(avg_path, 'm' + 'AUD_%s_%s_N%d-ave.fif'
-                                  % (age, analysis, len(m_evokeds))), m_gaves)
+        mne.write_evokeds(op.join(avg_path, 'f' + '%s_%s_%s_N%d-ave.fif'
+                                  % (vis_or_aud, age, analysis, len(f_evokeds))), f_gaves)
+        mne.write_evokeds(op.join(avg_path, 'm' + '%s_%s_%s_N%d-ave.fif'
+                                  % (vis_or_aud, age, analysis, len(m_evokeds))), m_gaves)
 
     if by_all:
         for j, (cond, name) in enumerate(zip(conditions, names)):
@@ -139,6 +140,6 @@ for age in ages:
                 evokeds.append(evoked)
             gaves.append(mne.grand_average(evokeds))
             gaves[j].comment = cond
-            mne.write_evokeds(op.join(avg_path, 'AUD_%s_%s_N%d-ave.fif'
-                                      % (age, analysis, len(subjs))), gaves)
+            mne.write_evokeds(op.join(avg_path, '%s_%s_%s_N%d-ave.fif'
+                                      % (vis_or_aud, age, analysis, len(subjs))), gaves)
 
