@@ -94,12 +94,11 @@ assert len(aud_in_numbers) == len(aud_in_names)
 #               ['sa-ia-ui', 'ue-kae-si', 'koe-ai-ee', 'ka-ke-so'],
 #               ['ua-se-au', 'eu-sy-ii', 'iu-ea-ki', 'oo-su-aeae']]
 
-
 # T2 pseudowords
 
-pseudowords = [[ADD],
-               [],
-               []]
+pseudowords = [['aa-ka-su', 'si-au-ui', 'ai-ki-oeoe', 'sae-uu-yy'],
+               ['iu-koe-ee', 'ku-ie-so', 'ua-ky-ii', 'ae-oo-sa'],
+               ['ea-soe-ei', 'se-eu-sy', 'ue-ko-aeae', 'ke-ia-kae']]
 
 
 # fixed for now, could make flexible eventually

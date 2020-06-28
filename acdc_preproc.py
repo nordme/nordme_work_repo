@@ -11,35 +11,39 @@ import os.path as op
 
 # paths to important places
 
-raw_dir = '/home/nordme/data/acdc/'
+raw_dir = '/home/nordme/data/eeg_data/'
 
 # subjects
 
 
 # parameters needed by mnefun functions
 
-acdc_params = mnefun.Params()
+acdc_params = mnefun.Params(tmin=-0.1, tmax=0.75, t_adjust=0,
+                       decim=4, n_jobs_mkl=1, proj_sfreq=200,
+                       filter_length='auto', lp_cut=80., bmin=-0.1,
+                       lp_trans='auto', bem_type='inner_skull')
 
 # SSS denoising params
 acdc_params.sss_type = 'python'
-acdc_params.tsss_dur = 10.
-acdc_params.trans_to = 'median'  # where to transform head positions to
+acdc_params.tsss_dur = 20.
+acdc_params.trans_to = 'twa'  # where to transform head positions to
 acdc_params.movecomp = 'inter'
 acdc_params.st_correlation = .98
 acdc_params.sss_regularize = 'in'
 acdc_params.filter_chpi = True
+acdc_params.mf_autobad_type='python'
+acdc_params.mf_autobad=True
 
 # general parameters
-acdc_params.subjects = ['acdc_227']
-acdc_params.run_names = ['acdc_227_01']   # this parameter allows you to have multiple files per subject; generally condition name is the variable
+acdc_params.subjects = ['acdc_eeg_meg_adult']
+acdc_params.run_names = ['%s']   # this parameter allows you to have multiple files per subject; generally condition name is the variable
 acdc_params.inv_names = None  # this parameter lets you separate inverse solutions (i.e. between conditions)
 acdc_params.inv_runs = None # how many files per inverse solution
-acdc_params.work_dir = '/home/nordme/data/acdc/'
-
-# tell mnefun where to find ecg and eog channels
-
-acdc_params.ecg_channel = None
-acdc_params.eog_channel = None
+acdc_params.work_dir = raw_dir
+acdc_params.get_projs_from = range(len(acdc_params.run_names))
+acdc_params.proj_nums = [[1, 1, 0],  # ECG: grad/mag/eeg
+                         [0, 0, 0],  # EOG
+                         [0, 0, 0]]
 
 # set how many cores you want to use to do processing
 
@@ -53,10 +57,28 @@ acdc_params.n_jobs_resample = 6
 
 
 acdc_params.bem_type = 5120 # can be 5120 or 5120-5120-5120
-
 acdc_params.auto_bad = None  # max number of events disqualified by channel before channel becomes excluded automatically
 acdc_params.auto_bad_reject = None
 
+acdc_params.score = None
+acdc_params.analyses = ['All', 'Split']
+
+acdc_params.in_names = ['pitches', 'speech']
+acdc_params.in_numbers = [4, 8]
+
+acdc_params.out_names = [['All'], ['Split']]
+acdc_params.out_numbers = [[1, 1], [1, 2]]
+
+#out_numbers: Event numbers to convert to (e.g., [[1, 1, 2, 3, 3], ...] would create
+# three event types, where the first two and last two event types from
+# the original list get collapsed over).
+
+# epoching settings
+
+# must_match: Indices from the original in_names that must match in event counts
+#        before collapsing. List of lists
+
+acdc_params.on_missing = 'warning'  # for epochs
 
 # names of sub-directories under the subject directory; these directories are created during processing
 acdc_params.epochs_dir = 'epochs'
@@ -103,10 +125,6 @@ acdc_params.sws_ssh = 'nordme@kasga.ilabs.uw.edu'  # kasga
 acdc_params.sws_dir = '/data07/nordme/genz'
 acdc_params.sws_port = 22
 acdc_params.subject_indices = [0]
-acdc_params.get_projs_from = []
-acdc_params.proj_nums = [[1, 1, 0],  # ECG: grad/mag/eeg
-                         [0, 0, 0],  # EOG
-                         [0, 0, 0]]
 acdc_params.in_names = []
 acdc_params.in_numbers = []
 acdc_params.analyses = ['All']
@@ -132,7 +150,7 @@ acdc_params.coil_t_window = 0.2  # default is same as MF
 acdc_params.coil_t_step_min = 0.01
 acdc_params.proj_ave = False
 acdc_params.compute_rank = False
-acdc_params.cov_rank = 'full'
+acdc_params.cov_rank = True
 acdc_params.force_erm_cov_rank_full = True  # force empty-room inv rank
 
 # specify what jobs to do
@@ -140,13 +158,13 @@ acdc_params.force_erm_cov_rank_full = True  # force empty-room inv rank
 mnefun.do_processing(
     acdc_params,
     fetch_raw = False,
-    do_score = True,
+    do_score = False,
     push_raw = False,
-    do_sss = True,
+    do_sss = False,
     fetch_sss = False,
     do_ch_fix = False,
-    gen_ssp = True,
-    apply_ssp = True,
-    write_epochs = False
+    gen_ssp = False,
+    apply_ssp = False,
+    write_epochs = True
 )
 
