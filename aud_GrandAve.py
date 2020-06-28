@@ -16,7 +16,7 @@ import itertools
 from os import path as op
 
 # set what type of run you want to do
-fixed_or_twa = 'fixed'
+fixed_or_twa = 'twa'
 vis_or_aud = 'aud'
 by_all = True
 by_gender = True
@@ -24,7 +24,7 @@ resp = 'FRN'  # 'FRN' or 'SPN'; applies to vis only
 
 # establish key variables
 ages = ['9a', '11a', '13a', '15a', '17a']
-data_path = '/storage/genz_active/t1/%s_hp/' % fixed_or_twa
+data_path = '/storage/genz_active/t1/%s_hp/genz_noise/lax_params/' % fixed_or_twa
 avg_path = op.join(data_path, 'group_averages')
 analysis = 'Split' if vis_or_aud == 'aud' else resp + '-Split'
 lpf = 80
