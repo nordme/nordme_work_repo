@@ -11,17 +11,17 @@ import mnefun
 import numpy as np
 from genz_score import (score, aud_in_names, aud_in_numbers)
 
-raw_dir = ''
+# raw_dir = ''
 
 fixed_or_twa = 'twa'
-# raw_dir = '/storage/genz_active/t1/%s_hp/' % fixed_or_twa
+raw_dir = '/storage/genz_active/t1/%s_hp/' % fixed_or_twa
 if fixed_or_twa == 'twa':
     trans_to = 'twa'
 else:
     trans_to = (0.0, 0.0, 0.04)
 
 #subjs = [x for x in os.listdir(raw_dir) if op.isdir('%s%s' % (raw_dir, x)) and 'genz' in x]
-subjs = ['']
+subjs = ['genz125_9a']
 subjs.sort()
 
 params = mnefun.Params(tmin=-0.1, tmax=0.75, t_adjust=0, n_jobs=12,

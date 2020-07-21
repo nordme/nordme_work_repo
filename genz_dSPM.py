@@ -12,12 +12,13 @@ from mne.minimum_norm import (apply_inverse, read_inverse_operator)
 #raw_dir = '/home/nordme/data/genz/genz_active/'
 
 equalize = True
-do_vis = False
+do_vis = True
+do_aud = True
 
 # raw_dir = '/brainstudio/MEG/genz/genz_proc/active/twa_hp/'
 # anat_dir = '/brainstudio/MEG/genz/anatomy/'
 
-raw_dir = '/storage/genz_active/t1/twa_hp/test_fixes/lp_40/'
+raw_dir = '/storage/genz_active/t1/twa_hp/'
 anat_dir = '/storage/anat/subjects/'
 
 # raw_dir = '/home/nordme/data/genz/'
@@ -30,11 +31,9 @@ if try_eLORETA:
 else:
     method = 'dSPM'
 
-# subjects = ['genz125_9a']
-# subjects = ['genz219_11a', 'genz223_11a']
-# skip = ['genz131_9a']
-skip = []
-subjects = [x for x in os.listdir(raw_dir) if op.isdir('%s%s' % (raw_dir, x)) and 'genz' in x and not np.in1d(x, skip)]
+#skip = ['genz125_9a', 'genz218_11a']
+# subjects = [x for x in os.listdir(raw_dir) if op.isdir('%s%s' % (raw_dir, x)) and 'genz' in x and not np.in1d(x, skip)]
+subjects = ['genz125_9a', 'genz218_11a']
 subjects.sort()
 
 snr = 3.
@@ -84,15 +83,15 @@ for subject in subjects:
         os.mkdir(op.join(sub_path, 'inverse', 'auditory'))
 
     stc_path = op.join(sub_path, '%s_stc' % method, 'auditory')
-    epo_path = op.join(sub_path, 'epochs', 'All_40-sss_%s-epo.fif' % subject)
+    epo_path = op.join(sub_path, 'epochs', 'All_80-sss_%s-epo.fif' % subject)
     ave_path = op.join(sub_path, 'inverse', 'auditory')
-    inv_path = op.join(sub_path, 'inverse', '%s-meg-erm-fixed-inv.fif' % subject)
+    inv_path = op.join(sub_path, 'inverse', '%s_aud-80-sss-meg-fixed-inv.fif' % subject)
     src_path = op.join(anat_dir, subject, 'bem', '%s-oct-6-src.fif' % subject)
 
     # read in inverse and compute morph matrix for later application
     inv = read_inverse_operator(inv_path)
     src = mne.read_source_spaces(src_path)
-    morph = mne.compute_source_morph(src, subject_from=subject, subject_to='fsaverage',
+    morph = mne.compute_source_morph(inv['src'], subject_from=subject, subject_to='fsaverage',
                                      subjects_dir=anat_dir, spacing=5)
     morph.save(op.join(sub_path, '%s_stc' % method, '%s_source_morph.h5' % subject), overwrite=True)
 
@@ -108,85 +107,44 @@ for subject in subjects:
         aud_epochs.append(epochs[name])
 
     print('Creating stcs for subject %s' % subject)
-
-    for code, epoch in zip(codes, aud_epochs):
-        # make individual evoked files by averaging the epochs
-        print('Creating averages for subject %s %s' % (subject, code))
-        ave = epoch.average(method='mean')
-        ave.save(op.join(ave_path, '%s_%s-ave.fif' % (code, subject)))
-        # make the stc
-        stc = apply_inverse(ave, inv, method=method, lambda2=lambda2)
-        stc.save(op.join(stc_path, '%s_%s' % (code, subject)))
-        # make morphed stcs for use in movies
-        morphed_stc = morph.apply(stc)
-        morphed_stc.save(op.join(stc_path, '%s_%s_morphed' % (code, subject)))
+    if do_aud:
+        for code, epoch in zip(codes, aud_epochs):
+            # make individual evoked files by averaging the epochs
+            print('Creating averages for subject %s %s' % (subject, code))
+            ave = epoch.average(method='mean')
+            ave.save(op.join(ave_path, '%s_%s-ave.fif' % (code, subject)))
+            # make the stc
+            stc = apply_inverse(ave, inv, method=method, lambda2=lambda2)
+            stc.save(op.join(stc_path, '%s_%s' % (code, subject)))
+            # make morphed stcs for use in movies
+            morphed_stc = morph.apply(stc)
+            morphed_stc.save(op.join(stc_path, '%s_%s_morphed' % (code, subject)))
 
     # VISUAL STCS
     if do_vis:
-        FRN_path = op.join(sub_path, 'epochs', 'All_40-sss_%s-FRN-epo.fif' % subject)
-        SPN_path = op.join(sub_path, 'epochs', 'All_40-sss_%s-SPN-epo.fif' % subject)
-
+        vis_path = op.join(sub_path, 'epochs', 'All_80-sss_%s-vis-epo.fif' % subject)
         vave_path = op.join(sub_path, 'inverse', 'visual')
         vstc_path = op.join(sub_path, '%s_stc' % method, 'visual')
-        vinv_path = op.join(sub_path, 'inverse', '%s-meg-erm-fixed-inv.fif' % subject)
+        vinv_path = op.join(sub_path, 'inverse', '%s_vis-80-sss-meg-fixed-inv.fif' % subject)
 
         vinv = read_inverse_operator(vinv_path)
-
-        # create appropriate groups of epochs
-
-        FRN = mne.read_epochs(FRN_path)
-        SPN = mne.read_epochs(SPN_path)
-
-        epoch = ['FRN', 'SPN']
+        vis_epochs = mne.read_epochs(vis_path)
 
         blocks = ['faces', 'emojis', 'thumbs', 'allblocks']
 
         feedback = ['correct', 'incorrect', 'bothfdbk']
 
-        vis_conds = [[e, b, f] for e in epoch for b in blocks for f in feedback]
-
-        vis_epochs = []
-
-        for [e,b,f] in vis_conds:
-            if 'FRN' in e:
-                if 'allblocks' in b:
-                    if 'bothfdbk' in f:
-                        epoch = FRN['learn']
-                        vis_epochs.append([epoch, [e,b,f]])
-                    else:
-                        epoch = FRN['learn/%s' % f]
-                        vis_epochs.append([epoch, [e,b,f]])
-                else:
-                    if 'bothfdbk' in f:
-                        epoch = FRN['%s' % b]
-                        vis_epochs.append([epoch, [e,b,f]])
-                    else:
-                        epoch = FRN['%s/learn/%s' % (b, f)]
-                        vis_epochs.append([epoch, [e,b,f]])
-            else:
-                if 'allblocks' in b:
-                    if 'bothfdbk' in f:
-                        epoch = SPN['learn']
-                        vis_epochs.append([epoch, [e,b,f]])
-                    else:
-                        epoch = SPN['learn/%s' % f]
-                        vis_epochs.append([epoch, [e,b,f]])
-                else:
-                    if 'bothfdbk' in f:
-                        epoch = SPN['%s' % b]
-                        vis_epochs.append([epoch, [e,b,f]])
-                    else:
-                        epoch = SPN['%s/learn/%s' % (b, f)]
-                        vis_epochs.append([epoch, [e,b,f]])
-
-        for ve, [e, b, f] in vis_epochs:
-            vcode = '%s_%s_%s' % (e, b, f)
-            print('Creating averages for subject %s %s' % (subject, vcode))
-            ave = ve[0].average(method='mean')
-            ave.save(op.join(vave_path, '%s_%s-ave.fif' % (vcode, subject)))
-            # make the stc
-            stc = apply_inverse(ave, vinv, method=method, lambda2=lambda2)
-            stc.save(op.join(vstc_path, '%s_%s' % (vcode, subject)))
-            # make morphed stcs for use in difference movies
-            morphed_stc = morph.apply(stc)
-            morphed_stc.save(op.join(vstc_path, '%s_%s_morphed' % (vcode, subject)))
+        for b in blocks:
+            for f in feedback:
+                vcode = '%s_%s' % (b, f)
+                print('Creating averages for subject %s %s' % (subject, vcode))
+                b_insert = '' if b == 'allblocks' else '/' + b
+                f_insert = '' if f == 'bothfdbk' else '/' + f
+                ave = vis_epochs['vis%s%s' % (b_insert, f_insert)].average(method='mean')
+                ave.save(op.join(vave_path, '%s_%s-ave.fif' % (vcode, subject)))
+                # make the stc
+                stc = apply_inverse(ave, vinv, method=method, lambda2=lambda2)
+                stc.save(op.join(vstc_path, '%s_%s' % (vcode, subject)))
+                # make morphed stcs for use in difference movies
+                morphed_stc = morph.apply(stc)
+                morphed_stc.save(op.join(vstc_path, '%s_%s_morphed' % (vcode, subject)))

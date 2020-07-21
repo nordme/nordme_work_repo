@@ -12,20 +12,23 @@ script to create auditory grand averages for genZ data.
 
 import mne
 import os
+import numpy as np
 import itertools
 from os import path as op
 
 # set what type of run you want to do
-fixed_or_twa = 'twa'
-vis_or_aud = 'aud'
+fixed_or_twa = 'fixed'
+vis_or_aud = 'vis'
 by_all = True
 by_gender = True
-resp = 'FRN'  # 'FRN' or 'SPN'; applies to vis only
+resp = 'vis'  # 'FRN' or 'SPN'; applies to vis only
+do_test = False   # whether or not to include test conditions in the epochs file
 
 # establish key variables
-ages = ['9a', '11a', '13a', '15a', '17a']
-data_path = '/storage/genz_active/t1/%s_hp/genz_noise/lax_params/' % fixed_or_twa
-avg_path = op.join(data_path, 'group_averages')
+ages = ['9a', '11a', '13a', '15a', '17a', 'allage', 'nonines']
+# ages = ['9a']
+data_path = '/storage/genz_active/t1/%s_hp/' % fixed_or_twa
+avg_path = op.join(data_path, 'group_averages', '%s' % vis_or_aud)
 analysis = 'Split' if vis_or_aud == 'aud' else resp + '-Split'
 lpf = 80
 
@@ -53,7 +56,7 @@ for s in all_subjects:
 
 blocks = ['emojis', 'faces', 'thumbs']
 stim = ['aud', 'vis']
-conditions = ['learn', 'test']
+conditions = ['learn', 'test'] if do_test else ['learn']
 aud_syl = ['s01', 's02', 's03']
 vis_fdbk = ['correct', 'incorrect']
 
@@ -80,9 +83,6 @@ for (b, c, f) in vis_product:
 # begin writing grand averages by age group, separated by gender if so specified
 # iterate by age group, by condition code,
 
-gaves = []
-f_gaves = []
-m_gaves = []
 
 for age in ages:
     conditions = aud_conditions if vis_or_aud == 'aud' else vis_conditions
@@ -97,49 +97,68 @@ for age in ages:
         subjs = fifteen
     if age == '17a':
         subjs = seventeen
+    if age == 'allage':
+        subjs = all_subjects
+    if age == 'nonines':
+        subjs = [x for x in all_subjects if not np.in1d(x, nine)]
+    subjs.sort()
+    print('Age %s: %s' % (age, subjs))
+    gaves = []
+    m_evokeds = []
+    f_evokeds = []
     if by_gender:
         for j, (cond, name) in enumerate(zip(conditions, names)):
-            m_evokeds = []
-            f_evokeds = []
+            print('Starting condition %s.' % name)
+            fc_ev = []
+            mc_ev = []
             for subj in subjs:
+                print('Adding subjects %s.' % subj)
                 if int(subj[4:7]) % 2 == 0:  # if the subject number is even, the subject is a girl
                     gender = 'f'
                 else:
                     gender = 'm'
-                evoked_file = op.join(data_path, '%s' % subj, 'inverse',
-                                      '%s_%d-sss_eq_%s-ave.fif'
-                                      % (analysis, lpf, subj))
-                evoked = mne.read_evokeds(evoked_file, condition=cond,
-                                          baseline=(None, 0))
+                evoked_file = op.join(data_path, '%s' % subj, 'inverse', '%s_%d-sss_eq_%s-ave.fif' % (analysis, lpf, subj))
+                evoked = mne.read_evokeds(evoked_file, condition=cond, baseline=(None, 0))
+#                if proj == 'proj_on':
+#                    evoked = mne.read_evokeds(evoked_file, condition=cond, baseline=(None, 0))
+#                else:
+#                    e = mne.read_evokeds(evoked_file, condition=cond, baseline=(None, 0))
+#                    evoked = e.copy().del_proj()
                 assert evoked.comment == cond
                 if gender == 'f':
-                    f_evokeds.append(evoked)
+                    fc_ev.append(evoked)
                 else:
-                    m_evokeds.append(evoked)
-            print('f_evokeds: %s' % len(f_evokeds))
-            print('m_evokeds: %s' % len(m_evokeds))
-            f_gaves.append(mne.grand_average(f_evokeds))
-            f_gaves[j].comment = 'f_%s' % cond
-            m_gaves.append(mne.grand_average(m_evokeds))
-            m_gaves[j].comment = 'm_%s' % cond
-        mne.write_evokeds(op.join(avg_path, 'f' + '%s_%s_%s_N%d-ave.fif'
-                                  % (vis_or_aud, age, analysis, len(f_evokeds))), f_gaves)
-        mne.write_evokeds(op.join(avg_path, 'm' + '%s_%s_%s_N%d-ave.fif'
-                                  % (vis_or_aud, age, analysis, len(m_evokeds))), m_gaves)
+                    mc_ev.append(evoked)
+            print('For condition %s' % name)
+            print('fc_ev: %s' % len(fc_ev))
+            print('mc_ev: %s' % len(mc_ev))
+            f_evokeds.append(mne.grand_average(fc_ev))
+            f_evokeds[j].comment = 'f_%s' % cond
+            m_evokeds.append(mne.grand_average(mc_ev))
+            m_evokeds[j].comment = 'm_%s' % cond
+        insert = '-learn' if not do_test else ''
+        f_save = op.join(avg_path, 'f' + '%s_%s_%s_N%d%s-ave.fif' % (vis_or_aud, age, analysis, len(fc_ev), insert))
+        m_save = op.join(avg_path, 'm' + '%s_%s_%s_N%d%s-ave.fif' % (vis_or_aud, age, analysis, len(mc_ev), insert))
+        print('All done with age %s! Saving the gender grand averages.' % age)
+        mne.write_evokeds(f_save, f_evokeds)
+        mne.write_evokeds(m_save, m_evokeds)
 
     if by_all:
         for j, (cond, name) in enumerate(zip(conditions, names)):
             evokeds = []
             for subj in subjs:
-                evoked_file = op.join(data_path, '%s' %subj, 'inverse',
-                                      '%s_%d-sss_eq_%s-ave.fif'
-                                      % (analysis, lpf, subj))
-                evoked = mne.read_evokeds(evoked_file, condition=cond,
-                                          baseline=(None,0))
+                evoked_file = op.join(data_path, '%s' %subj, 'inverse', '%s_%d-sss_eq_%s-ave.fif' % (analysis, lpf, subj))
+                evoked = mne.read_evokeds(evoked_file, condition=cond, baseline=(None, 0))
+#                if proj == 'proj_on':
+#                    evoked = mne.read_evokeds(evoked_file, condition=cond, baseline=(None, 0))
+#                else:
+#                    e = mne.read_evokeds(evoked_file, condition=cond, baseline=(None, 0))
+#                    evoked = e.copy().del_proj()
                 assert evoked.comment == cond
                 evokeds.append(evoked)
             gaves.append(mne.grand_average(evokeds))
             gaves[j].comment = cond
-            mne.write_evokeds(op.join(avg_path, '%s_%s_%s_N%d-ave.fif'
-                                      % (vis_or_aud, age, analysis, len(subjs))), gaves)
+            insert = '-learn' if not do_test else ''
+            all_save = op.join(avg_path, '%s_%s_%s_N%d%s-ave.fif' % (vis_or_aud, age, analysis, len(subjs), insert))
+            mne.write_evokeds(all_save, gaves)
 

@@ -147,14 +147,6 @@ default = True
 
 # add exceptions for subjects with strange stuff
 
-for subject in params.subjects:
-    if subject == 'genz232_11a':
-        params.ecg_channel = 'EOG062'
-        params.eog_channel = ['ECG063', 'EOG061']
-    else:
-        params.ecg_channel = None
-        params.eog_channel = None
-
 mnefun.do_processing(
     params,
     fetch_raw=False,  # Fetch raw recording files from acq machine

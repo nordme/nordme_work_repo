@@ -20,7 +20,8 @@ import fnmatch
 
 # subjects_dir = get_subjects_dir(None, raise_error=True)
 
-subjects_dir = '/home/nordme/data/genz_anatomy/redo'
+# subjects_dir = '/home/nordme/data/genz_anatomy/redo'
+subjects_dir = '/storage/anat/subjects/'
 environ = copy.copy(os.environ)
 environ['SUBJECTS_DIR'] = subjects_dir
 run_recon = False
@@ -28,7 +29,7 @@ do_rms = False
 do_flash = False
 n_jobs = 18
 # subjects_dir = '/brainstudio/MEG/genz/anatomy'
-subjects_dir = '/home/nordme/data/genz_anatomy/redo'
+# subjects_dir = '/home/nordme/data/genz_anatomy/redo'
 
 
 def find_files(pattern, path):
@@ -41,7 +42,7 @@ def find_files(pattern, path):
    return result
 
 
-subjects = ['106_9a', '119_9a', '121_9a', '122_9a', '301_13a', '330_13a']
+subjects = ['125_9a']
 
 
 for subject in subjects:
@@ -137,7 +138,7 @@ for subject in subjects:
     else:
         print('     Starting Watershed BEM  process...')
         run_subprocess(['mne', 'watershed_bem', '--subject', subject,
-                        '--preflood', '12', '--overwrite'],
+                        '--preflood', '19', '--atlas', '--overwrite'],
                        env=environ)
 
     # Create dense head surface and symbolic link to head.fif file

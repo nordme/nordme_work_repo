@@ -9,14 +9,13 @@ import numpy as np
 ### SOURCE SPACE GRAND AVERAGES SCRIPT
 # set important variables
 
-
 signed = False
 
 method = 'dSPM'
 
-skip_visual = True
+skip_visual = False
 
-skip_auditory = False
+skip_auditory = True
 
 if signed:
     tag = '/signed/'
@@ -28,15 +27,15 @@ else:
 # raw_dir = '/home/nordme/data/genz/'
 
 raw_dir = '/storage/genz_active/t1/twa_hp/'
-# raw_dir = '/brainstudio/MEG/genz/genz_proc/active/'
-# raw_dir = '/brainstudio/MEG/genz/genz_proc/active/twa_hp/'
-# anat_dir = '/brainstudio/MEG/genz/anatomy/'
+anat_dir = '/storage/anat/subjects/'
 
-subjects = [x for x in os.listdir(raw_dir) if op.isdir('%s%s' % (raw_dir, x)) and 'genz' in x]
+skip=['genz125_9a', 'genz218_11a']
+subjects = [x for x in os.listdir(raw_dir) if op.isdir('%s%s' % (raw_dir, x)) and 'genz' in x and not np.in1d(x, skip)]
 subjects.sort()
 
 blocks = [ 'a','f', 'e', 't']
-conditions = ['l', 't']
+# conditions = ['l', 't']
+conditions = ['l']
 
 codes = ['%s%s%02d' % (block, condition, syllable) 
                     for condition in conditions                
@@ -79,15 +78,11 @@ for gender, gender_name in zip(genders, gender_names):
 
 # create visual grand averages
 
-epoch = ['FRN', 'SPN']
-
 blocks = ['faces', 'emojis', 'thumbs', 'allblocks']
 
 feedback = ['correct', 'incorrect', 'bothfdbk']
 
-vis_conds = [[e, b, f] for e in epoch for b in blocks for f in feedback]
-
-vcodes = ['%s_%s_%s' % (e, b, f) for e in epoch for b in blocks for f in feedback]
+vcodes = ['%s_%s' % (b, f) for b in blocks for f in feedback]
 
 vave_dir = op.join(raw_dir, '%s_ave' % method, 'visual%s' % tag)
 
