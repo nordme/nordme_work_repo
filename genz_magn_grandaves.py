@@ -15,7 +15,7 @@ method = 'dSPM'
 
 skip_visual = False
 
-skip_auditory = True
+skip_auditory = False
 
 if signed:
     tag = '/signed/'
@@ -29,7 +29,7 @@ else:
 raw_dir = '/storage/genz_active/t1/twa_hp/'
 anat_dir = '/storage/anat/subjects/'
 
-skip=['genz125_9a', 'genz218_11a']
+skip=[]
 subjects = [x for x in os.listdir(raw_dir) if op.isdir('%s%s' % (raw_dir, x)) and 'genz' in x and not np.in1d(x, skip)]
 subjects.sort()
 
@@ -42,13 +42,13 @@ codes = ['%s%s%02d' % (block, condition, syllable)
                     for block in blocks                    
                     for syllable in (range(1,13) if condition == 't' else range(1,4))]
 
-ages = ['all', '9', '11', '13', '15', '17']
+ages = ['all', 'nonines', '9', '11', '13', '15', '17']
 
-feml = [[], [], [], [], [], []]
+feml = [[], [], [], [], [], [], []]
 
-male = [[], [], [], [], [], []]
+male = [[], [], [], [], [], [], []]
 
-both = [[], [], [], [], [], []]
+both = [[], [], [], [], [], [], []]
 
 genders = [both, male, feml]
 
@@ -59,21 +59,31 @@ master_list = []
 # create subject pools (gender x age) since each grand average will need to draw on a different set of subjects
 # index 0 corresponds to subjects of all ages
 for i, age in enumerate(ages):
-    feml[i] = [sub for sub in subjects if '%sa' % age in sub and int(sub[4:7]) % 2 == 0]
-    male[i] = [sub for sub in subjects if '%sa' % age in sub and int(sub[4:7]) % 2 != 0]
-    both[i] = [sub for sub in subjects if '%sa' % age in sub]
-    feml[0] = [sub for sub in subjects if int(sub[4:7]) % 2 == 0]
-    male[0] = [sub for sub in subjects if int(sub[4:7]) % 2 != 0]
-    both[0] = [sub for sub in subjects]
+    if age == 'all':
+        feml[i] = [sub for sub in subjects if int(sub[4:7]) % 2 == 0]
+        male[i] = [sub for sub in subjects if int(sub[4:7]) % 2 != 0]
+        both[i] = [sub for sub in subjects]
+    elif age == 'nonines':
+        feml[i] = [sub for sub in subjects if '9a' not in sub and int(sub[4:7]) % 2 == 0]
+        male[i] = [sub for sub in subjects if '9a' not in sub and int(sub[4:7]) % 2 != 0]
+        both[i] = [sub for sub in subjects if '9a' not in sub]
+    else:
+        feml[i] = [sub for sub in subjects if '%sa' % age in sub and int(sub[4:7]) % 2 == 0]
+        male[i] = [sub for sub in subjects if '%sa' % age in sub and int(sub[4:7]) % 2 != 0]
+        both[i] = [sub for sub in subjects if '%sa' % age in sub]
+
     print('Finished creating age pool %s for stc averaging.' % age)
 
 # make a master list of subject pools to average over
 # with handy entries that include the list of relevant subjects as well as the gender and age
+
 for gender, gender_name in zip(genders, gender_names):
     for i in [0]:
         master_list.append([gender_name, 'allage', gender[i]])
-    for i in np.arange(1, 6):
-        master_list.append([gender_name, '%d' % (i*2+7), gender[i]])
+    for i in [1]:
+        master_list.append([gender_name, 'nonines', gender[i]])
+    for i in np.arange(2, 7):
+        master_list.append([gender_name, '%d' % (i*2+5), gender[i]])
         print('Added %s %d to master list of subject pools.' % (gender_name, i))
 
 # create visual grand averages
