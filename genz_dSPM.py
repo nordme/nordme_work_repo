@@ -30,10 +30,10 @@ if try_eLORETA:
     method = 'eLORETA'
 else:
     method = 'dSPM'
-
+skip = []
 #skip = ['genz125_9a', 'genz218_11a']
-# subjects = [x for x in os.listdir(raw_dir) if op.isdir('%s%s' % (raw_dir, x)) and 'genz' in x and not np.in1d(x, skip)]
-subjects = ['genz125_9a', 'genz218_11a']
+subjects = [x for x in os.listdir(raw_dir) if op.isdir('%s%s' % (raw_dir, x)) and 'genz' in x and not np.in1d(x, skip)]
+#subjects = ['genz125_9a', 'genz218_11a']
 subjects.sort()
 
 snr = 3.
