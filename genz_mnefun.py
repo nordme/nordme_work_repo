@@ -9,24 +9,26 @@ import os
 import os.path as op
 import mnefun
 import numpy as np
-from genz_score import (score, aud_in_names, aud_in_numbers)
+from genz_score import (score, aud_in_names, aud_in_numbers, pick_aud_cov_events)
 
 # raw_dir = ''
 
 fixed_or_twa = 'twa'
-raw_dir = '/storage/genz_active/t1/%s_hp/' % fixed_or_twa
+# raw_dir = '/storage/genz_active/t1/%s_hp/' % fixed_or_twa
+raw_dir = '/data/genz/'
 if fixed_or_twa == 'twa':
     trans_to = 'twa'
 else:
     trans_to = (0.0, 0.0, 0.04)
+lp_cut = 80
 
 #subjs = [x for x in os.listdir(raw_dir) if op.isdir('%s%s' % (raw_dir, x)) and 'genz' in x]
-subjs = ['genz125_9a']
+subjs = ['erica_peterson']
 subjs.sort()
 
-params = mnefun.Params(tmin=-0.1, tmax=0.75, t_adjust=0, n_jobs=12,
-                       decim=4, n_jobs_mkl=1, proj_sfreq=200,
-                       n_jobs_fir=12, n_jobs_resample=12,
+params = mnefun.Params(tmin=-0.1, tmax=0.75, t_adjust=0, n_jobs=8,
+                       decim=4, n_jobs_mkl=8, proj_sfreq=200,
+                       n_jobs_fir=8, n_jobs_resample=8,
                        filter_length='auto', lp_cut=80., bmin=-0.1,
                        lp_trans='auto', bem_type='inner_skull')
 
@@ -37,7 +39,7 @@ params.subject_indices = np.arange(len(params.subjects))
 params.dates = [(2014, 10, 14)] * len(params.subjects)
 params.structurals = params.subjects
 params.subject_run_indices = None
-params.subjects_dir = '/storage/anat/subjects/'
+params.subjects_dir = '/data/anat_subjects/'
 params.score = score
 params.run_names = [
     '%s_emojis_learn_01',
@@ -58,28 +60,32 @@ params.trans_to = trans_to
 params.tsss_dur = 20.
 params.movecomp = 'inter'
 params.coil_t_window = 'auto'
+params.mf_autobad = True
+params.mf_autobad_type = 'python'
+params.hp_type = 'python'
 # Trial rejection
-params.reject = dict()
-params.auto_bad_reject = None
-params.ssp_ecg_reject = None
+params.reject = dict(grad=2000e-13, mag=6000e-15)
 params.flat = dict(grad=1e-13, mag=1e-15)
-# Which runs and trials to use
-params.get_projs_from = np.arange(6)
-# params.inv_names = None  # Broken  (not iterable tb during gen_covs)
-# params.inv_names = None  # Also broken.
-params.inv_names = [] # gen_covs works, but list index out of range tb during reports step
-params.inv_runs = []
-params.pick_events_cov = None
+params.ssp_ecg_reject = params.reject
+params.ssp_eog_reject = params.reject
 params.proj_nums = [[1, 1, 0],  # ECG: grad/mag/eeg
                     [1, 1, 0],  # EOG
                     [0, 0, 0]]  # Continuous (from ERM)
+params.get_projs_from = np.arange(6)
+params.plot_drop_logs = True
+# Which runs and trials to use
+params.inv_names = ['%s'] # gen_covs works, but list index out of range tb during reports step
+params.inv_runs = [np.arange(6)]
+params.pick_events_cov = pick_aud_cov_events
 params.on_missing = 'ignore'  # some subjects will not complete the paradigm
+params.every_other = True
 params.in_names = aud_in_names
 params.in_numbers = aud_in_numbers
-params.epochs_prefix = 'All'
-params.cov_method = 'empirical'
+params.cov_method = 'shrunk'
 params.compute_rank = True
 params.cov_rank = None
+params.cov_rank_method = 'compute_rank'
+params.cov_rank_tol = 5e-2
 params.force_erm_cov_rank_full = False
 params.runs_empty = ['%s_erm_01'] # add in the empty room covariance
 params.bem_type = '5120'
@@ -97,76 +103,40 @@ params.out_numbers = [  # these don't matter as long as they don't overlap...
     100000 * np.arange(1, len(params.in_names) + 1),
     ]
 # do not trial count match for now
-params.must_match = [[]] * len(params.analyses)
-aud_times = [0.09, 0.25]
-vis_times = [0.17, 0.22]
-#params.report_params.update(  # add a couple of nice diagnostic plots
-#    bem=False,  # Using a surrogate
-#    whitening=[
-#        dict(analysis='All', name='aud',
-#             cov='%s-80-sss-cov.fif'),
-#        dict(analysis='Split', name='aud/emojis/learn/s01',
-#             cov='%s-80-sss-cov.fif'),
-#        dict(analysis='All', name='vis_onset',
-#             cov='%s-80-sss-cov.fif'),
-#    ],
-#    sensor=[
-#        dict(analysis='All', name='aud', times=aud_times),
-#        dict(analysis='Split', name='aud/emojis/learn/s01', times=aud_times),
-#        dict(analysis='SPN', name='vis', times=vis_times),
-#    ],
-#    source=[
-#        dict(analysis='All', name='aud',
-#             inv='%s_aud-80-sss-meg-free-inv.fif', times=aud_times,
-#             views=['lat', 'caudal'], size=(800, 800)),
-#        dict(analysis='Split', name='aud/emojis/learn/s01',
-#             inv='%s_aud-80-sss-meg-free-inv.fif', times=aud_times,
-#             views=['lat', 'caudal'], size=(800, 800)),
-#        dict(analysis='SPN', name='vis',
-#             inv='%s_vis-80-sss-meg-free-inv.fif', times=vis_times,
-#              views=['lat', 'caudal'], size=(800, 800)),
-#    ],
-#    psd=False,  # often slow
-#)
+params.must_match = [None] * len(params.analyses)
+times = [0.05, 0.105, 0.220, 0.550]
+cov = '%s-' + str(lp_cut) + '-sss-cov.fif'
+inv = '%s-' + str(lp_cut) + '-sss-meg-inv.fif'
+
+show = [{'projs': True, "analysis":'Split', "name":'aud/%s/learn/s%02d' % (kind, syl), "times":times, "cov":cov, "inv":inv}
+        for kind in ('emojis', 'faces', 'thumbs')
+        for syl in (1,2,3)]
+
 params.report_params.update(  # add a couple of nice diagnostic plots
-    bem=False,  # Using a surrogate
-    whitening=[
-        dict(analysis='All', name='aud',
-             cov='%s-80-sss-cov.fif'),
-        dict(analysis='Split', name='aud/emojis/learn/s01',
-             cov='%s-80-sss-cov.fif'),
-    ],
-    sensor=[
-        dict(analysis='All', name='aud', times=aud_times),
-        dict(analysis='Split', name='aud/emojis/learn/s01', times=aud_times),
-    ],
-    sensor_topo=[
-        dict(analysis='All', name='aud'),
-        dict(analysis='Split', name='aud/emojis/learn/s01'),
-    ],
-#    snr=[
-#        dict(analysis='Split', name='aud_faces_learn_s1'),
-#        dict(analysis='Split', name='aud_emojis_learn_s1'),
-#        dict(analysis='Split', name='aud_thumbs_learn_s1'),
-#    ],
-    source_alignment=False,
-    psd=False,  # often slow
+    good_hpi_count=True,
+    raw_segments=True,
+    chpi_snr=False,
+    head_movement=False,
+    ssp_topomaps=True,
+    drop_log=True,
+    covariance=cov,
+    whitening=show,
+    sensor=show,
+    snr=False,
+    source=show,
+    source_alignment=True,
+    psd=True  # often slow
 )
 default = True
 
-
 mnefun.do_processing(
     params,
-    fetch_raw=False,  # Fetch raw recording files from acq machine
     do_score=False,  # do scoring
-    push_raw=False,  # Push raw files and SSS script to SSS workstation
     do_sss=False, # Run SSS remotely
-    fetch_sss=False,  # Fetch SSSed files
-    do_ch_fix=False,  # Fix channel ordering
     gen_ssp=False,  # Generate SSP vectors
     apply_ssp=False,  # Apply SSP vectors and filtering
     write_epochs=False,  # Write epochs to disk
-    gen_covs=True,  # Generate covariances
+    gen_covs=False,  # Generate covariances
     gen_fwd=False,  # Generate forward solutions (and source space if needed)
     gen_inv=False,  # Generate inverses
     gen_report=True,

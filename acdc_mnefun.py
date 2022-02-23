@@ -6,16 +6,14 @@ import mnefun
 import numpy as np
 from acdc_score import (score_acdc, score_acdc_eeg)
 
-raw_dir = '/home/nordme/data/eeg_data/'
-
-subjects = ['acdc_eeg_meg_adult']
-
+raw_dir = '/data/acdc/'
+subjects = ['erica_peterson']
 
 # INITIALIZE
 
-acdc_params = mnefun.Params(tmin=-0.05, tmax=1.0, n_jobs=18,
-                            decim=1, n_jobs_mkl=18, proj_sfreq=250,
-                            n_jobs_fir=18, n_jobs_resample=18,
+acdc_params = mnefun.Params(tmin=-0.05, tmax=1.0, n_jobs=8,
+                            decim=1, n_jobs_mkl=8, proj_sfreq=250,
+                            n_jobs_fir=8, n_jobs_resample=8,
                             filter_length='auto', epochs_type='fif', lp_cut=80.,
                             bmin=-0.05, plot_raw=False)
 
@@ -83,7 +81,7 @@ acdc_params.auto_bad = None  # max number of events disqualified by channel befo
 acdc_params.auto_bad_reject = None
 acdc_params.auto_bad_flat = None
 acdc_params.autoreject_thresholds = False
-acdc_params.reject = dict()
+acdc_params.reject = dict(grad=2000e-13, mag=6000e-15)
 acdc_params.flat = dict(grad=1e-13, mag=1e-15)
 
 
@@ -91,27 +89,33 @@ acdc_params.flat = dict(grad=1e-13, mag=1e-15)
 
 # covariance
 # pacc_params.pick_events_cov = pick_cov_events_pacc # Function to pick a subset of events to use to make a covariance
-acdc_params.cov_method = 'empirical'
-acdc_params.cov_rank = 'full'
+acdc_params.cov_method = 'shrunk'
+acdc_params.compute_rank = True
+acdc_params.cov_rank = None
+acdc_params.cov_rank_method = 'compute_rank'
+acdc_params.cov_rank_tol = 5e-2
+acdc_params.cov_method = 'shrunk'
 
 # FORWARDS
 
 # boolean for whether data set(s) have an individual mri
 acdc_params.on_process = None
 acdc_params.structurals = acdc_params.subjects
+acdc_params.bem_type = '5120'
 
 
 # INVERSES
 
-acdc_params.inv_names = None  # this parameter lets you separate inverse solutions (i.e. between conditions)
-acdc_params.inv_runs = None  # how many files per inverse solution
+acdc_params.inv_names = ['%s']  # this parameter lets you separate inverse solutions (i.e. between conditions)
+acdc_params.inv_runs = [0]  # how many files per inverse solution
 
 
 # REPORTS
-show = [{"analysis":'All', "name":'%s' % kind}
+inv = '%s-80-sss-meg-inv.fif'
+show = [{"analysis":'All', "name":'%s' % kind, 'inv': inv}
         for kind in ('standard', 'oddball1', 'oddball2')
         ]
-
+cov = '%s-80-sss-cov.fif'
 acdc_params.plot_drop_logs = False  # plot drop logs after do_preprocessing_
 acdc_params.report_params = dict(
     good_hpi_count=True,
@@ -122,10 +126,10 @@ acdc_params.report_params = dict(
     sensor=show,
     source_alignment=False,
     bem=False,
-    source=False,
-    covariance=False,
+    source=show,
+    covariance=cov,
     drop_log=False,
-    whitening=False,
+    whitening=show,
     snr=False
     )
 

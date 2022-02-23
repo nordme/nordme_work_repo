@@ -12,17 +12,20 @@ from mne.minimum_norm import (apply_inverse, read_inverse_operator)
 #raw_dir = '/home/nordme/data/genz/genz_active/'
 
 equalize = True
-do_vis = True
+do_vis = False
 do_aud = True
 
 # raw_dir = '/brainstudio/MEG/genz/genz_proc/active/twa_hp/'
 # anat_dir = '/brainstudio/MEG/genz/anatomy/'
 
-raw_dir = '/storage/genz_active/t1/twa_hp/'
-anat_dir = '/storage/anat/subjects/'
+#raw_dir = '/storage/genz_active/t1/twa_hp/'
+#anat_dir = '/storage/anat/subjects/'
 
 # raw_dir = '/home/nordme/data/genz/'
 # anat_dir = '/home/nordme/data/genz/anat'
+
+raw_dir = '/data/genz/'
+anat_dir = '/data/anat_subjects/'
 
 try_eLORETA = False
 
@@ -32,8 +35,8 @@ else:
     method = 'dSPM'
 skip = []
 #skip = ['genz125_9a', 'genz218_11a']
-subjects = [x for x in os.listdir(raw_dir) if op.isdir('%s%s' % (raw_dir, x)) and 'genz' in x and not np.in1d(x, skip)]
-#subjects = ['genz125_9a', 'genz218_11a']
+# subjects = [x for x in os.listdir(raw_dir) if op.isdir('%s%s' % (raw_dir, x)) and 'genz' in x and not np.in1d(x, skip)]
+subjects = ['erica_peterson']
 subjects.sort()
 
 snr = 3.
@@ -85,7 +88,7 @@ for subject in subjects:
     stc_path = op.join(sub_path, '%s_stc' % method, 'auditory')
     epo_path = op.join(sub_path, 'epochs', 'All_80-sss_%s-epo.fif' % subject)
     ave_path = op.join(sub_path, 'inverse', 'auditory')
-    inv_path = op.join(sub_path, 'inverse', '%s_aud-80-sss-meg-fixed-inv.fif' % subject)
+    inv_path = op.join(sub_path, 'inverse', '%s-80-sss-meg-inv.fif' % subject)
     src_path = op.join(anat_dir, subject, 'bem', '%s-oct-6-src.fif' % subject)
 
     # read in inverse and compute morph matrix for later application

@@ -10,9 +10,11 @@ import os.path as op
 from score import (vis_names, vis_numbers, pick_vis_cov_events)
 
 lp_cut = 80
-raw_dir = '/storage/genz_active/t1/fixed_hp/'
-subjects = [x for x in os.listdir(raw_dir) if 'genz' in x and op.isdir(op.join(raw_dir, x))]
+# raw_dir = '/storage/genz_active/t1/fixed_hp/'
+#subjects = [x for x in os.listdir(raw_dir) if 'genz' in x and op.isdir(op.join(raw_dir, x))]
 # subjects = ['genz105_9a']
+raw_dir = '/data/genz/'
+subjects = ['erica_peterson']
 subjects.sort()
 
 params = mnefun.Params(tmin=-2.1, tmax=0.8, t_adjust=0, decim=4, lp_cut=lp_cut,
@@ -66,8 +68,8 @@ params.must_match = [[]] * len(params.analyses)  # not matching for twa_hp run (
 mnefun.do_processing(
     params,
     write_epochs=True,
-    gen_covs=False,
-    gen_inv=False,
+    gen_covs=True,
+    gen_inv=True,
     print_status=False,
 )
 

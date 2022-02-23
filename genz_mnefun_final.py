@@ -21,13 +21,18 @@ if fixed_or_twa == 'twa':
 else:
     trans_to = (0.0, 0.0, 0.04)
 
-raw_dir = '/storage/genz_active/t1/%s_hp/' % fixed_or_twa
-yml_path = '/home/nordme/github/GenZ/'
+eog_or_vh = 'eog'  # Choose between regular eog and separated vertical, horizontal eog
+
+# raw_dir = '/storage/genz_active/t1/%s_hp/' % fixed_or_twa
+# raw_dir = '/storage/genz_active/t1/twa_hp/'
+# yml_path = '/home/erica/repos/GenZ-1/params/'
+raw_dir = '/media/erica/Rocstor/genz/'
+yml_path = '/media/erica/Rocstor/genz/params/'
 
 skip = []
-subjs = [x for x in os.listdir(raw_dir) if op.isdir('%s%s' % (raw_dir, x)) and 'genz' in x
-         and not np.in1d(x, skip)]
-# subjs = ['genz105_9a']
+# subjs = [x for x in os.listdir(raw_dir) if op.isdir('%s%s' % (raw_dir, x)) and 'genz' in x
+#         and not np.in1d(x, skip)]
+subjs = ['genz113_9a']
 subjs.sort()
 
 params = mnefun.Params(tmin=-0.1, tmax=0.75, t_adjust=0, n_jobs=18,
@@ -39,11 +44,10 @@ params = mnefun.Params(tmin=-0.1, tmax=0.75, t_adjust=0, n_jobs=18,
 params.subjects = subjs
 params.work_dir = raw_dir
 params.subject_indices = np.arange(len(params.subjects))
-params.subject_indices = np.setdiff1d(np.arange(len(params.subjects)), [np.arange(37)])
 params.dates = [(2014, 10, 14)] * len(params.subjects)
 params.structurals = params.subjects
 params.subject_run_indices = None
-params.subjects_dir = op.join('/storage', 'anat', 'subjects')
+params.subjects_dir = '/media/erica/Rocstor/anat/'
 params.score = score
 params.run_names = [
     '%s_emojis_learn_01',
@@ -69,27 +73,25 @@ params.mf_autobad = True
 params.mf_autobad_type = 'python'
 params.hp_type = 'python'
 # SSP params
-with open(op.join(yml_path, 'gp_ssp_ecg_reject.yml')) as f:
-    params.ssp_ecg_reject = yaml.load(f, Loader=yaml.FullLoader)
-# params.ssp_ecg_reject = dict(grad=1000e-13, mag=3000e-15)
-with open(op.join(yml_path, 'gp_ecg_channel.yml')) as f:
-    params.ecg_channel = yaml.load(f, Loader=yaml.FullLoader)
-with open(op.join(yml_path, 'gp_ssp_eog_reject.yml')) as f:
-    params.ssp_eog_reject = yaml.load(f, Loader=yaml.FullLoader)
-with open(op.join(yml_path, 'gp_eog_channel.yml')) as f:
-    params.eog_channel = yaml.load(f, Loader=yaml.FullLoader)
-with open(op.join(yml_path, 'gp_eog_t_lims.yml')) as f:
-    params.eog_t_lims = yaml.load(f, Loader=yaml.FullLoader)
-with open(op.join(yml_path, 'gp_eog_f_lims.yml')) as f:
-    params.eog_f_lims = yaml.load(f, Loader=yaml.FullLoader)
-with open(op.join(yml_path, 'gp_eog_thresh.yml')) as f:
-    params.eog_thresh = yaml.load(f, Loader=yaml.FullLoader)
-with open(op.join(yml_path, 'gp_proj_nums.yml')) as f:
-    params.proj_nums = yaml.load(f, Loader=yaml.FullLoader)
-params.get_projs_from = np.arange(6)
+with open(op.join(yml_path, 'ecg_proj_params_%s.yml' % fixed_or_twa)) as f:
+    params.ssp_ecg_reject, params.ecg_channel = yaml.load(f, Loader=yaml.FullLoader)
+
+if eog_or_vh == 'eog':
+    with open(op.join(yml_path, 'proj_params_%s.yml' % fixed_or_twa)) as f:
+         params.proj_nums, params.get_projs_from, params.ssp_eog_reject = yaml.load(f, Loader=yaml.FullLoader)
+    with open(op.join(yml_path, 'eog_proj_params_%s.yml' % fixed_or_twa)) as f:
+        params.eog_channel, params.eog_f_lims, params.eog_t_lims, params.eog_thresh = yaml.load(f, Loader=yaml.FullLoader)
+else:
+    with open(op.join(yml_path, 'vh_proj_params_%s.yml' % fixed_or_twa)) as f:
+         params.proj_nums, params.get_projs_from, params.ssp_eog_reject = yaml.load(f, Loader=yaml.FullLoader)
+    with open(op.join(yml_path, 'veog_proj_params_%s.yml' % fixed_or_twa)) as f:
+         params.veog_channel, params.veog_f_lims, params.veog_t_lims, params.veog_thresh = yaml.load(f, Loader=yaml.FullLoader)
+    with open(op.join(yml_path, 'heog_proj_params_%s.yml' % fixed_or_twa)) as f:
+         params.heog_channel, params.heog_f_lims, params.heog_t_lims, params.heog_thresh = yaml.load(f, Loader=yaml.FullLoader)
+
 params.plot_drop_logs=True
 # epoch rejection params
-#params.epochs_proj = 'delayed'
+# params.epochs_proj = 'delayed'
 params.reject = dict(grad=2000e-13, mag=6000e-15)
 params.flat = dict(grad=1e-13, mag=1e-15)
 # cov and inv params
@@ -105,8 +107,8 @@ params.cov_rank = None
 params.cov_rank_method = 'compute_rank'
 params.cov_rank_tol = 5e-2
 params.cov_method = 'shrunk'
-# params.force_erm_cov_rank_full = False
-# params.runs_empty = ['%s_erm_01'] # add in the empty room covariance
+params.force_erm_cov_rank_full = False
+params.runs_empty = ['%s_erm_01'] # add in the empty room covariance
 params.bmax = 0.0
 params.bmin = -0.1
 params.bem_type = '5120'
@@ -126,43 +128,30 @@ params.out_numbers = [  # these don't matter as long as they don't overlap...
 # do not trial count match for now
 params.must_match = [None] * len(params.analyses)
 times = [0.05, .105, .22, .55]
-# cov = '%s_erm_01_allclean_fil80-sss-cov.fif'
-# inv = '%s-meg-erm-inv.fif'
+
 cov = '%s_aud-' + str(lp_cut) + '-sss-cov.fif'
 inv = '%s_aud-' + str(lp_cut) + '-sss-meg-inv.fif'
-#show = [{"proj": p, "analysis":'Split', "name":'aud/%s/learn/s%02d' % (kind, syl), "times":times, "cov":cov, "inv":inv}
-#        for p in [True, False]
-#        for kind in ('emojis', 'faces', 'thumbs')
-#        for syl in (1,2,3)]
 
-show = [{"analysis":'Split', "name":'aud/%s/learn/s%02d' % (kind, syl), "times":times, "cov":cov, "inv":inv}
+show = [{"proj": True, "analysis":'Split', "name":'aud/%s/learn/s%02d' % (kind, syl), "times":times, "cov":cov, "inv":inv}
         for kind in ('emojis', 'faces', 'thumbs')
         for syl in (1,2,3)]
 
 params.report_params.update(  # add a couple of nice diagnostic plots
-    good_hpi_count=True,
-#    chpi_snr=False,
-#    head_movement=True,
+#    good_hpi_count=True,
+    good_hpi_count=False,
     raw_segments=True,
-#    good_hpi_count=False,
     chpi_snr=False,
     head_movement=False,
-#    raw_segments=False,
     ssp_topomaps=True,
     drop_log=True,
-#    bem=False,  # Using a surrogate
+    bem=False,  # Using a surrogate
     covariance=cov,
-#    covariance=False,
     whitening=show,
-#    whitening=False,
     sensor=show,
-#    sensor_topo=show,
-    snr=False,
-#    source=True,
-#    snr=show,
+    snr=show,
     source=show,
     source_alignment=True,
-    psd=True  # often slow
+    psd=False  # often slow
 )
 default = True
 
@@ -172,10 +161,10 @@ mnefun.do_processing(
     do_sss=False, # Run SSS remotely
     gen_ssp=False,  # Generate SSP vectors
     apply_ssp=False,  # Apply SSP vectors and filtering
-    write_epochs=True,  # Write epochs to disk
-    gen_covs=True,  # Generate covariances
+    write_epochs=False,  # Write epochs to disk
+    gen_covs=False,  # Generate covariances
     gen_fwd=False,  # Generate forward solutions (and source space if needed)
-    gen_inv=True,  # Generate inverses
+    gen_inv=False,  # Generate inverses
     gen_report=True,
     print_status=False,
 )

@@ -10,13 +10,17 @@ just_check = False
 # resting_dir = '/brainstudio/MEG/genz/genz_proc/resting/'
 
 # parent_dir = '/mnt/scratch/prek/post_camp/trans/'
-parent_dir = '/mnt/scratch/prek/trans/'
-dest_dir = '/mnt/scratch/prek/pre_camp/twa_hp/erp' # the directory containing the subject dirs that needs trans files
+# parent_dir = '/mnt/scratch/prek/trans/'
+# dest_dir = '/mnt/scratch/prek/pre_camp/twa_hp/erp' # the directory containing the subject dirs that needs trans files
+
+parent_dir = '/data/anat_subjects/r_cohort_anat/'
+dest_dir = '/data/prek/r_cohort/post_camp/'
 
 files = os.listdir(parent_dir)
 files.sort()
 
-subjects = [op.join((file.strip('-trans.fif')) + 'a') for file in files if 'genz' in file]
+# determine subject pool by the trans files that are completed
+subjects = [(file.strip('-trans.fif')) for file in files if 'trans' in file]
 
 # code for checking if each subject in the resting directory has a trans file
 if just_check:
@@ -40,12 +44,13 @@ else:
     # sort trans files into resting trans folders for subjects that don't already have a trans file
 
     for subject in subjects:
-        target_dir = op.join(dest_dir, subject, '/trans/')
+        target_dir = op.join(dest_dir, subject, 'trans')
         if op.isfile(op.join(target_dir, '%s-trans.fif' % subject)):
             print('Subject %s already has a trans file.' % subject)
         elif op.isdir(target_dir):
             try:
-                shutil.copy(op.join(parent_dir, subject + '-trans.fif'), target_dir)
+                dest_path = op.join(target_dir, subject + '-trans.fif' )
+                shutil.copy(op.join(parent_dir, subject + '-trans.fif'), dest_path)
                 print('Put trans file in for subject %s.' % subject)
             except PermissionError:
                 print('Need permission for subject %s.' % subject)

@@ -7,8 +7,9 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import (MultipleLocator)
 
 subjects = ['erica_peterson']
-raw_files = ['%s_raw.fif']
-data_dir = '/data/acdc'
+raw_files = ['%s_emojis_raw.fif']
+data_dir = '/media/erica/Rocstor/genz'
+ecg_ch = 'ECG001'
 
 for subject in subjects:
     for file in raw_files:
@@ -24,7 +25,7 @@ for subject in subjects:
             print('tmax: %s' % tmax)
             crop = raw.copy().crop(tmin, tmax)
 #            crop.pick_types(ecg=True)
-            data.append(crop.get_data(picks=['BIO003']))
+            data.append(crop.get_data(picks=[ecg_ch]))
 
         fig, axes = plt.subplots(nrows=4, ncols=1, figsize=(22,16))
 

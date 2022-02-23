@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import mne
+import os
 import os.path as op
 import numpy as np
 import subprocess
@@ -10,25 +11,30 @@ import matplotlib.pyplot as plt
 
 # set these variables
 
-subjects = ['genz532_17a']
+# subjects = ['genz532_17a']
 # subjects_dir = '/storage/anat/subjects/'
-subjects_dir = '/home/nordme/data/genz/anat/'
-n_jobs = 16
+# subjects_dir = '/home/nordme/data/genz/anat/'
+# subjects = ['spi_7m_106']
+subjects_dir = '/media/erica/Rocstor/anat/spi_anat/'
+subjects = [s for s in os.listdir(subjects_dir) if 'spi_7m' in s and not 'old' in s]
+subjects.sort()
+n_jobs = 8
 
 # BEM variables
-do_bem = False
+do_bem = True
 layers = 1     # how many layers of the BEM you wish to compute (3 for EEG, 1 for MEG)
 preflood = 12
-overwrite = True
+overwrite = False
 
 # source space variables
 # script is set up to produce one source space of each variety
 # Turn off the ones you don't want generated, otherwise they'll all get made
-sphere = np.array((0.0, -0.02, 0.0, 0.08))    # volumetric source space bounded by sphere
-volumetric_bem = True   # for volumetric source space bounded by bem
-volumetric_surf = True    # for volumetric source space bounded by surface
+# sphere = np.array((0.0, -0.02, 0.0, 0.08))    # volumetric source space bounded by sphere
+sphere = None
+volumetric_bem = False   # for volumetric source space bounded by bem
+volumetric_surf = False    # for volumetric source space bounded by surface
 warp_surface = False    # for surface source space using warped template surfaces
-anat_surface = True   # for individual MRI derived GM/WM surface-only source space
+anat_surface = False   # for individual MRI derived GM/WM surface-only source space
 
 spacing = 'oct6'
 
@@ -45,13 +51,13 @@ for subject in subjects:
         bsurf_name = op.join(base_path, 'bem', '%s-5120-bem.fif' % subject)
         bem_name = op.join(base_path, 'bem', '%s-5120-bem-sol.fif' % subject)
 
-        ws = subprocess.run(['mne', 'watershed_bem', '--subject', '%s' % subject,
+        ws = subprocess.run(['mne', 'watershed_bem', '--subject', '%s' % subject, '-d', '%s' % subjects_dir,
                         '--preflood', '%s' % preflood, '--overwrite', '%s' % overwrite])
 
         print('Finished watershed algorithm. Starting to create the BEM model.')
 
         model = subprocess.run(['mne_setup_forward_model', '--homog', '--surf', '--ico',
-                        '4', '--subject', '%s' % subject])
+                        '4', '--subject', '%s' % subject, '--subjects_dir', '%s' % subjects_dir])
 
     # run setup_source_space
     src_dir = op.join(base_path, 'bem')

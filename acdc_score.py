@@ -10,7 +10,7 @@ def score_acdc(p):
     oddball1 = []
     oddball2 = []
     raw_path = op.join(raw_dir, subject, 'raw_fif', f_name % subject + '_raw.fif')
-    event_fname=op.join(raw_dir, subject, 'lists', 'ALL_acdc_eeg_meg_adult_actual-eve.lst')
+    event_fname=op.join(raw_dir, subject, 'lists', 'ALL_%s-eve.lst' % subject)
     raw = mne.io.read_raw_fif(raw_path, allow_maxshield=True)
     ones = mne.find_events(raw, mask=1)
     events = mne.find_events(raw)
