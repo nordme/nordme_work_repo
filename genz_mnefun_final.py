@@ -26,13 +26,13 @@ eog_or_vh = 'eog'  # Choose between regular eog and separated vertical, horizont
 # raw_dir = '/storage/genz_active/t1/%s_hp/' % fixed_or_twa
 # raw_dir = '/storage/genz_active/t1/twa_hp/'
 # yml_path = '/home/erica/repos/GenZ-1/params/'
-raw_dir = '/media/erica/Rocstor/genz/'
+raw_dir = '/media/erica/Rocstor/genz/genz2/fixedhp/'
 yml_path = '/media/erica/Rocstor/genz/params/'
 
 skip = []
 # subjs = [x for x in os.listdir(raw_dir) if op.isdir('%s%s' % (raw_dir, x)) and 'genz' in x
 #         and not np.in1d(x, skip)]
-subjs = ['genz113_9a']
+subjs = ['erica_peterson']
 subjs.sort()
 
 params = mnefun.Params(tmin=-0.1, tmax=0.75, t_adjust=0, n_jobs=18,

@@ -6,8 +6,9 @@ import mnefun
 import numpy as np
 from acdc_score import (score_acdc, score_acdc_eeg)
 
-raw_dir = '/data/acdc/'
-subjects = ['erica_peterson']
+# raw_dir = '/data/acdc/'
+raw_dir = '/media/erica/Rocstor/infslow'
+subjects = ['acdc']
 
 # INITIALIZE
 
@@ -31,7 +32,7 @@ acdc_params.sws_ssh = 'nordme@kasga.ilabs.uw.edu'  # kasga
 acdc_params.sws_dir = '/data07/nordme/genz'
 acdc_params.sss_type = 'python'
 acdc_params.tsss_dur = 20.
-acdc_params.trans_to = 'twa'  # where to transform head positions to
+acdc_params.trans_to = (0.0, 0.0, 0.04)  # where to transform head positions to
 acdc_params.movecomp = 'inter'
 acdc_params.st_correlation = .98
 acdc_params.sss_regularize = 'in'
@@ -73,7 +74,7 @@ acdc_params.out_numbers = [acdc_params.in_numbers]
 acdc_params.must_match=[[]*(len(acdc_params.analyses))]
 # must_match: Indices from the original in_names that must match in event counts
 #        before collapsing. List of lists
-acdc_params.on_missing = 'warning'  # for epochs
+acdc_params.on_missing = 'warn'  # for epochs
 
 # epoch rejection
 
@@ -138,14 +139,14 @@ acdc_params.report_params = dict(
 mnefun.do_processing(
     acdc_params,
     do_score = False,
-    do_sss = False,
-    gen_ssp = False,
-    apply_ssp = False,
-    write_epochs = False,
-    gen_covs = False,  # Generate covariances
+    do_sss = True,
+    gen_ssp = True,
+    apply_ssp = True,
+    write_epochs = True,
+    gen_covs = True,  # Generate covariances
     gen_fwd = False,  # Generate forward solutions (and source space if needed)
-    gen_inv = False,  # Generate inverses
-    gen_report = True,
+    gen_inv = True,  # Generate inverses
+    gen_report = False,
     print_status = False
 )
 

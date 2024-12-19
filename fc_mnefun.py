@@ -4,7 +4,7 @@
 
 import mnefun
 import numpy as np
-from acdc_score import (score_acdc, score_acdc_eeg)
+
 
 raw_dir = '/data/fc/'
 subjects = ['fc_6mo_305']

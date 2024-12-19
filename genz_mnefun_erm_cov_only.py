@@ -145,8 +145,8 @@ params.report_params.update(  # add a couple of nice diagnostic plots
 #        dict(analysis='Split', name='aud_emojis_learn_s1'),
 #        dict(analysis='Split', name='aud_thumbs_learn_s1'),
 #    ],
-    source_alignment=True,
-    psd=False,  # often slow
+    source_alignment=False,
+    psd=True,  # often slow
 )
 default = True
 
@@ -162,8 +162,8 @@ mnefun.do_processing(
     apply_ssp=False,  # Apply SSP vectors and filtering
     write_epochs=False,  # Write epochs to disk
     gen_covs=False,  # Generate covariances
-    gen_fwd=True,  # Generate forward solutions (and source space if needed)
+    gen_fwd=False,  # Generate forward solutions (and source space if needed)
     gen_inv=False,  # Generate inverses
-    gen_report=False,
+    gen_report=True,
     print_status=False,
 )

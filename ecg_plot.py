@@ -6,10 +6,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.ticker import (MultipleLocator)
 
-subjects = ['erica_peterson']
-raw_files = ['%s_emojis_raw.fif']
-data_dir = '/media/erica/Rocstor/genz'
+subjects = ['genz_c126']
+raw_files = ['%s_rest_raw.fif']
+#data_dir = '/data/genz/ep_t2/'
+data_dir = '/media/erica/data1/genz_control'
 ecg_ch = 'ECG001'
+#ecg_ch = 'ECG063'
 
 for subject in subjects:
     for file in raw_files:
@@ -50,7 +52,7 @@ for subject in subjects:
             ax.yaxis.set_major_locator(MultipleLocator(500))
             ax.yaxis.set_minor_locator(MultipleLocator(100))
 
-            ax.grid(b=True, color='0.7', which='both')
+            ax.grid(visible=True, color='0.7', which='both')
 
-        fig.suptitle('%s ECG for %s' % (subject, file))
+        fig.suptitle('%s ECG for %s' % (subject, file.split('_')[1]))
         fig.savefig(save_path)
