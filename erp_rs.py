@@ -20,7 +20,7 @@ n_jobs = 8
 baseline = None
 baseline_mode = 'mean'
 b_tag = str(baseline_mode) if baseline else 'nobaseline'
-method = 'dSPM'
+method = 'eLORETA'
 m_tag = str(method[0:4])
 
 for si, subject in enumerate(subjects):

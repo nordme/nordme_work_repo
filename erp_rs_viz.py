@@ -15,7 +15,8 @@ d_dir = Path('/data/erica/rs')
 bands = dict(theta=[4, 7], alpha=[8, 12], beta=[13, 30], gamma=[31, 55])
 n_freqs = 52
 n_lbls = 68
-ba_scale = dict(theta=80, alpha=20, beta=14, gamma=8)
+#ba_scale = dict(theta=80, alpha=20, beta=14, gamma=8)
+ba_scale = dict(theta=2, alpha=1.2, beta=0.75, gamma=0.5)
 br_scale = dict(theta=0.05, alpha=0.01, beta=0.007, gamma=0.005)
 
 labels = read_labels_from_annot(subject='erp_1', parc='aparc',
@@ -23,12 +24,15 @@ labels = read_labels_from_annot(subject='erp_1', parc='aparc',
 labels = [l for l in labels if not '???' in l.name
           and not l.name.startswith('unknown')]
 
+method = 'eLORETA'
+m_tag = str(method[0:4])
+
 # load in data
 a_data = np.zeros((len(subjects), n_freqs, n_lbls))
 r_data = np.zeros((len(subjects), n_freqs, n_lbls))
 
 for si, sub in enumerate(subjects):
-    s_path = d_dir / sub / f'{sub}_aparc_nobaseline_dSPM_rs_spower.csv'
+    s_path = d_dir / sub / f'{sub}_aparc_nobaseline_{m_tag}_rs_spower.csv'
     s_data = np.loadtxt(s_path, delimiter=',')
     assert s_data.shape == (58, n_lbls)
     # mean power in cortical label at each frequency
@@ -45,7 +49,7 @@ rmax, rmin = r_data.max(), r_data.min()
 
 for bi, (band, [low, high]) in enumerate(bands.items()):
     i_dir = d_dir / 'plots'
-    f_save = i_dir / f'erp_long_rs_power_plots_{band}.png'
+    f_save = i_dir / f'erp_long_rs_power_plots_{m_tag}_{band}.png'
     fig, axes = plt.subplots(nrows=4, ncols=len(subjects), figsize=(16, 16))
     for ci in range(3):
         b_abs = a_data[ci, low-4:high-4, :]
@@ -62,7 +66,7 @@ for bi, (band, [low, high]) in enumerate(bands.items()):
             # label absolute power as percentage of max label for timepoint
             a_val = b_abs[lidx] / b_abs.max()
             a_brain.add_label(lab, color='red', alpha=a_val)
-        b_save = i_dir / 'abs' / f'erp_{ci+1}_label_{band}.png'
+        b_save = i_dir / 'abs' / f'erp_{ci+1}_label_{m_tag}_{band}.png'
         a_brain.save_image(b_save)
         a_brain.close()
 
@@ -73,7 +77,7 @@ for bi, (band, [low, high]) in enumerate(bands.items()):
             # label relative power as percentage of max label for timepoint
             r_val = b_rel[lidx] / b_rel.max()
             r_brain.add_label(lab, color='red', alpha=r_val)
-        r_save = i_dir / 'rel' / f'erp_{ci + 1}_label_{band}.png'
+        r_save = i_dir / 'rel' / f'erp_{ci + 1}_label_{m_tag}_{band}.png'
         r_brain.save_image(r_save)
         r_brain.close()
         # diff plots
@@ -88,7 +92,7 @@ for bi, (band, [low, high]) in enumerate(bands.items()):
                 d_val = diff[lidx] / ba_scale[band]
                 col = 'red' if d_val > 0 else 'blue'
                 d_brain.add_label(lab, color=col, alpha=min(1, abs(d_val)))
-            d_save = i_dir / 'diff' / f'erp_abs_diff_t{ci + 1}-t1_label_{band}.png'
+            d_save = i_dir / 'diff' / f'erp_abs_diff_t{ci + 1}-t1_label_{m_tag}_{band}.png'
             d_brain.save_image(d_save)
             d_brain.close()
             # relative diff
@@ -102,7 +106,7 @@ for bi, (band, [low, high]) in enumerate(bands.items()):
                 rd_val = r_diff[lidx] / br_scale[band]
                 col = 'red' if rd_val > 0 else 'blue'
                 rd_brain.add_label(lab, color=col, alpha=min(1, abs(rd_val)))
-            rd_save = i_dir / 'diff' / f'erp_rel_diff_t{ci + 1}-t1_label_{band}.png'
+            rd_save = i_dir / 'diff' / f'erp_rel_diff_t{ci + 1}-t1_label_{m_tag}_{band}.png'
             rd_brain.save_image(rd_save)
             rd_brain.close()
 
