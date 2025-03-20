@@ -4,9 +4,11 @@ import os.path as op
 import mne
 Brain = mne.viz.get_brain_class()
 
-anat_dir = '/media/erica/data1/anat_subjects'
-atlas = 'aparc'
-out_dir = f'/media/erica/data1/anat_subjects/atlas/{atlas}'
+#anat_dir = '/media/erica/data1/anat_subjects'
+anat_dir = '/data/anat_subjects'
+atlas = 'HCPMMP1'
+#out_dir = f'/media/erica/data1/anat_subjects/atlas/{atlas}'
+out_dir = f'/data/anat_subjects/atlas/{atlas}'
 
 if not op.isdir(out_dir):
     os.mkdir(out_dir)
