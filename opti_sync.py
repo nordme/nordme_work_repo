@@ -12,12 +12,15 @@ subjects = ['acc_test',]
 # frame_trigger_delay = 150
 frame_trigger_delay = 0
 # transformation matrix: optitrack coordinates to room coordinates
-o_r_transform = np.array([[1, 0, 0, 0],
-                          [0, 1, 0, 0],
-                          [0, 0, 1, 0],
-                          [0, 0, 0, 1]])
+o_r_transform = np.array([[-0.3861917,  -0.7097543,   0.58915548, -1.28498289],
+                          [-0.07634419,  0.66111041,  0.74639429,  1.61672498],
+                          [-0.91925345,  0.24327291, -0.30950088, -0.36701521],
+                          [ 0.,          0.,          0.,          1.        ]])
 
-q_inv = quaternion([qx, qy, qz, qw])
+q_inv = quaternion(-0.491278328975763,
+                   0.256026712140394,
+                   -0.767594046531035,
+                   -0.322327597157024)
 
 
 def find_start_end(t_list):
@@ -68,7 +71,7 @@ def reconstruct_pos(frames, positions):
     return fixed_pos
 
 
-def convert_to_room_coords(p_data, t_matrix):
+def convert_to_room_coords(p_data, t_matrix, q_inv):
     out_pos = np.zeros(shape=(p_data.shape))
     for pidx, prow in enumerate(p_data):
         # preserve zero coordinates
@@ -79,10 +82,11 @@ def convert_to_room_coords(p_data, t_matrix):
             out_pos[pidx] = prow
         else:
             pos_vector = [prow[0], prow[1], prow[2], 1]
-            [posx, posy, posx, _] = t_matrix @ pos_vector
-            q_cam = quaternion([prow[3], prow[4], prow[5], prow[6]])
-            [q1, q2, q3, q4] = q_inv * q_cam
-            out_pos[pidx] = [posx, posy, posz, q1, q2, q3, q4]
+            [posx, posy, posz, _] = t_matrix @ pos_vector
+            # natnetsdk outputs quats with scalar, w, last
+            q_cam = quaternion(prow[6], prow[3], prow[4], prow[5])
+            q_out = q_inv * q_cam
+            out_pos[pidx] = [posx, posy, posz, q_out.x, q_out.y, q_out.z, q_out.w]
     return out_pos
 
 
@@ -202,7 +206,7 @@ for sub in subjects:
         fids = np.array(fids)
         pos = np.array(posd)
 
-    pos = convert_to_room_coords(pos, o_r_transform)
+    pos = convert_to_room_coords(pos, o_r_transform, q_inv)
 
     # ensure that raw triggers match tab file triggers
     if len(t_trigs) != len(r_trigs):
